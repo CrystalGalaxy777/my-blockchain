@@ -108,7 +108,6 @@ console.log("Valid after tamper?", verifyTx(tamperedJson, signature, publicKey))
 // publicKey: [RU] Публичный ключ владельца — по нему проверяем / [EN] The owner’s public key — used for verification
 // [RU] Должно вывести false, потому что подпись привязана к исходным байтам. Любая подмена ломает проверку / [EN] Should print false, because the signature is bound to the original bytes. Any change breaks verification
 
-
 // ---------- 8. Мини-мемпул: очередь неподтверждённых транзакций ----------
 // [RU] Храним пары { tx, signature } до включения в блок.
 // [EN] Store { tx, signature } pairs before block inclusion.
