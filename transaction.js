@@ -107,3 +107,36 @@ console.log("Valid after tamper?", verifyTx(tamperedJson, signature, publicKey))
 // signature: [RU] Это подпись, сделанная по исходному txJson, а не по tamperedJson / [EN] Signature created for the original txJson, not for tamperedJson 
 // publicKey: [RU] Публичный ключ владельца — по нему проверяем / [EN] The owner’s public key — used for verification
 // [RU] Должно вывести false, потому что подпись привязана к исходным байтам. Любая подмена ломает проверку / [EN] Should print false, because the signature is bound to the original bytes. Any change breaks verification
+
+
+// ---------- 8. Мини-мемпул: очередь неподтверждённых транзакций ----------
+// [RU] Храним пары { tx, signature } до включения в блок.
+// [EN] Store { tx, signature } pairs before block inclusion.
+// [DE] Speichert { tx, signature } Paare vor Aufnahme in einen Block.
+
+const mempool = []; // [RU] простая очередь / [EN] simple array / [DE] einfache Warteschlange
+
+function addToMempool(txObj, sigHex, pubKeyPem) {
+  // 1) Проверяем подпись над точными байтами
+  const json = serializeTx(txObj);
+  const ok = verifyTx(json, sigHex, pubKeyPem);
+  if (!ok) throw new Error('Invalid signature');
+
+  // 2) Проверяем, что from-адрес соответствует публичному ключу
+  const expectedFrom = toAddress(pubKeyPem);
+  if (txObj.from !== expectedFrom) throw new Error('From address does not match public key');
+
+  // 3) Запрещаем дубли по (from, nonce)
+  const dup = mempool.some(e => e.tx.from === txObj.from && e.tx.nonce === txObj.nonce);
+  if (dup) throw new Error('Duplicate (from, nonce) in mempool');
+
+  mempool.push({ tx: txObj, signature: sigHex });
+  console.log('Mempool size:', mempool.length);
+}
+
+// Демонстрация: кладём нашу подписанную транзакцию
+try {
+  addToMempool(tx, signature, publicKey);
+} catch (e) {
+  console.log('Mempool reject:', e.message);
+}
