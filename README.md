@@ -1,8 +1,13 @@
 # My Blockchain Learning (JS)
 
-**RU:** Учебный проект по блокчейн-программированию: транзакции, подписи, адреса, блоки, Genesis, PoW, ключи, mempool.  
-**EN:** Learning project: transactions, signatures, addresses, blocks, genesis, PoW, keys, mempool. 
-**DE:** Lernprojekt: Transaktionen, Signaturen, Adressen, Schlüssel, Mempool.
+> **RU:** Мини-проект: ключи → адрес → транзакция → подпись/проверка → mempool.  
+> **EN:** Mini project: keys → address → transaction → sign/verify → mempool.  
+> **DE:** Mini-Projekt: Schlüssel → Adresse → Transaktion → Signieren/Prüfen → Mempool.
+
+**Highlights**
+- ECDSA (secp256k1) keypair & address
+- Deterministic TX JSON + SHA-256 hash
+- Signature verify + tamper protection + tiny mempool
 
 ## How to run
 ```bash
