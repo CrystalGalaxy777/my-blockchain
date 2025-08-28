@@ -1,7 +1,7 @@
 # My Blockchain Learning (JS)
 
 > **EN:** Mini project: keys → address → transaction → sign/verify → mempool.  
-> **DE:** Mini-Projekt: Schlüssel → Adresse → Transaktion → Signieren/Prüfen → Mempool.
+> **DE:** Mini-Projekt: Schlüssel → Adresse → Transaktion → Signieren/Prüfen → Mempool.  
 > **RU:** Мини-проект: ключи → адрес → транзакция → подпись/проверка → mempool.
 
 ---
