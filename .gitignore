@@ -1,3 +1,26 @@
-node_modules/
-.env
-.DS_Store
+# === Node.js dependencies ===
+node_modules/          # [RU/EN/DE] Папка с зависимостями / Dependencies folder / Abhängigkeitsordner
+
+# === Environment variables ===
+.env                   # [RU/EN/DE] Секретные ключи, токены / Secret keys, tokens / Geheimnisse, Tokens
+
+# === System files ===
+.DS_Store              # [RU/EN/DE] macOS системный файл / macOS system file / macOS-Systemdatei
+Thumbs.db              # [RU/EN/DE] Windows системный файл / Windows system file / Windows-Systemdatei
+
+# === Logs ===
+logs/
+*.log                  # [RU/EN/DE] Файлы логов / Log files / Log-Dateien
+npm-debug.log*
+
+# === Build / temp ===
+dist/                  # [RU/EN/DE] Сборка фронтенда или Node / Build output / Build-Ausgabe
+tmp/                   # [RU/EN/DE] Временные файлы / Temp files / Temporäre Dateien
+
+# === Hardhat (Solidity) ===
+artifacts/             # [RU/EN/DE] Скомпилированные контракты / Compiled contracts / Kompilierte Verträge
+cache/                 # [RU/EN/DE] Кэш Hardhat / Hardhat cache / Hardhat-Cache
+coverage/              # [RU/EN/DE] Результаты покрытия тестов / Test coverage results / Testergebnisabdeckung
+
+# === VS Code ===
+.vscode/               # [RU/EN/DE] Локальные настройки VS Code / Local VS Code settings / Lokale VS Code-Einstellungen

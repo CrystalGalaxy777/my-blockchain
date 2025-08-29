@@ -1,0 +1,50 @@
+{
+  "name": "my-blockchain",
+  "version": "1.0.0",
+  "description": "Mini blockchain learning project: keys → address → transaction → sign/verify → mempool → blocks → chain",
+
+  "//": "=== Project entry point ===",
+  "main": "transaction.js",
+
+  "//scripts": "Команды для запуска разных частей проекта",
+  "scripts": {
+    "start": "node transaction.js",  
+    "block": "node block.js",        
+    "chain": "node blockchain.js",   
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+
+  "//repository": "GitHub project URL",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CrystalGalaxy777/my-blockchain.git"
+  },
+
+  "//keywords": "Теги проекта (для поиска)",
+  "keywords": [
+    "blockchain",
+    "solidity",
+    "crypto",
+    "education",
+    "javascript"
+  ],
+
+  "//author": "Имя или ник разработчика",
+  "author": "CrystalGalaxy777",
+
+  "//license": "Тип лицензии. ISC по умолчанию, можно заменить на MIT",
+  "license": "ISC",
+
+  "//bugs": "Ссылка на Issues в GitHub",
+  "bugs": {
+    "url": "https://github.com/CrystalGalaxy777/my-blockchain/issues"
+  },
+
+  "//homepage": "Главная страница проекта (README на GitHub)",
+  "homepage": "https://github.com/CrystalGalaxy777/my-blockchain#readme",
+
+  "//devDependencies": "Зависимости для разработки. @types/node нужны VS Code, чтобы не подчёркивал require",
+  "devDependencies": {
+    "@types/node": "^20.11.30"
+  }
+}
