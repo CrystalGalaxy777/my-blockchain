@@ -6,7 +6,9 @@ const crypto = require('crypto');                                               
 
 function sha256Hex(str) {                                                            // [RU/EN/DE] SHA-256 строки → hex / SHA-256 of string → hex / SHA-256 der Zeichenkette → Hex
   return crypto.createHash('sha256').update(str).digest('hex');                      // [RU/EN/DE] Вычислить SHA-256 / Compute SHA-256 / SHA-256 berechnen
-}
+}                                                                                    //.createHash('sha256')   // создаём «пустой» объект-хэшировщик
+                                                                                     //.update(str)            // кормим его строкой (данными)
+                                                                                     //.digest('hex');         // просим вернуть результат в hex-строке
 
 function serializeHeader(h) {                                                        // [RU/EN/DE] Детерм. сериализация заголовка / Deterministic header serialization / Deterministische Header-Serialisierung
   const ordered = {                                                                  // [RU/EN/DE] Фиксированный порядок полей / Fixed field order / Feste Feldreihenfolge
