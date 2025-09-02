@@ -23,7 +23,7 @@ class Blockchain {                                                              
 
     this.chain.push(b);                                                              // [RU/EN/DE] Принять блок в цепь / Append block to chain / Block an Kette anhängen
     return b;                                                                        // [RU/EN/DE] Вернуть добавленный блок / Return added block / Hinzugefügten Block zurückgeben
-  }                                                                                  // [RU/EN/DE] Конец метода / End method / Methodenende
+  }                                                                                  
 
   isValid() {                                                                         // [RU/EN/DE] Проверка целостности цепи / Chain integrity check / Kettenintegritätsprüfung
     for (let i = 1; i < this.chain.length; i++) {                                    // [RU/EN/DE] Идём по блокам с 1 / Iterate from 1 / Ab 1 iterieren
@@ -37,7 +37,7 @@ class Blockchain {                                                              
       if (h !== cur.hash) return false;                                              // [RU/EN/DE] Хэш не совпал / Hash mismatch / Hash stimmt nicht
     }
     return true;                                                                      // [RU/EN/DE] Цепь валидна / Chain is valid / Kette ist gültig
-  }                                                                                  // [RU/EN/DE] Конец метода / End method / Methodenende
-}                                                                                    // [RU/EN/DE] Конец класса / End of class / Ende der Klasse
+  }                                                                                  
+}                                                                                    
 
 module.exports = { Blockchain };                                                     // [RU/EN/DE] Экспорт класса / Export class / Klasse exportieren
