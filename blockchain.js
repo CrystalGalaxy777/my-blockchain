@@ -4,7 +4,7 @@ const { Block, simpleTxRoot, sha256Hex, serializeHeader } = require('./block'); 
 class Blockchain {                                                                   // [RU/EN/DE] Класс цепочки / Blockchain class / Blockchain-Klasse
   constructor() {                                                                   
     this.chain = [ new Block(0, '0'.repeat(64), []) ];                               // [RU/EN/DE] Генезис-блок в цепи / Genesis block in chain / Genesis-Block in Kette
-  }                                                                                 
+  }                                                                                  // Генезис-блок = самый первый, у него нет предыдущего.Чтобы структура не ломалась (ведь поле prevHash обязано быть), туда кладут строку из 64 нулей. Это как «заглушка» → символическое начало цепи.
 
   tip() {                                                                            // [RU/EN/DE] Последний блок / Last block / Letzter Block
     return this.chain[this.chain.length - 1];                                        // [RU/EN/DE] Вернуть хвост массива / Return array tail / Arrayende zurückgeben

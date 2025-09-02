@@ -9,14 +9,14 @@ function sha256Hex(str) {                                                       
 }                                                                                    //.createHash('sha256')   // создаём «пустой» объект-хэшировщик
                                                                                      //.update(str)            // кормим его строкой (данными)
                                                                                      //.digest('hex');         // просим вернуть результат в hex-строке
-
+// Все эти поля — обязательная часть заголовка, именно они определяют «личность» блока
 function serializeHeader(h) {                                                        // [RU/EN/DE] Детерм. сериализация заголовка / Deterministic header serialization / Deterministische Header-Serialisierung
   const ordered = {                                                                  // [RU/EN/DE] Фиксированный порядок полей / Fixed field order / Feste Feldreihenfolge
     index: h.index,                                                                  // [RU/EN/DE] Номер блока / Block height / Blockhöhe
-    prevHash: h.prevHash,                                                            // [RU/EN/DE] Хэш прошлого блока / Previous hash / Vorheriger Hash
-    timestamp: h.timestamp,                                                          // [RU/EN/DE] Метка времени (мс) / Timestamp (ms) / Zeitstempel (ms)
-    txRoot: h.txRoot,                                                                // [RU/EN/DE] Корень транзакций / Tx root / Tx-Wurzel
-    nonce: h.nonce,                                                                  // [RU/EN/DE] Nonce (для будущего PoW) / Nonce (future PoW) / Nonce (künftiges PoW)
+    prevHash: h.prevHash,                                                            // [RU/EN/DE] Хэш прошлого блока (ссылка назад) / Previous hash / Vorheriger Hash
+    timestamp: h.timestamp,                                                          // [RU/EN/DE] Метка времени создания (мс) / Timestamp (ms) / Zeitstempel (ms)
+    txRoot: h.txRoot,                                                                // [RU/EN/DE] Корень всех транзакций в блоке / Tx root / Tx-Wurzel
+    nonce: h.nonce,                                                                  // [RU/EN/DE] Nonce (для будущего PoW) для майнинга / Nonce (future PoW) / Nonce (künftiges PoW)
   };                                                                                 // [RU/EN/DE] Объект заголовка / Header object / Header-Objekt
   return JSON.stringify(ordered);                                                    // [RU/EN/DE] В JSON-строку / To JSON string / Zu JSON-String
 }
