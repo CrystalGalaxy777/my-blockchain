@@ -1,15 +1,15 @@
 # My Blockchain Learning (JS)
 
-> **EN:** Mini project: keys → address → transaction → sign/verify → mempool → blocks → blockchain.
-> **DE:** Mini-Projekt: Schlüssel → Adresse → Transaktion → Signieren/Prüfen → Mempool → Blöcke → Blockchain.
-> **RU:** Мини-проект: ключи → адрес → транзакция → подпись/проверка → mempool → блоки → блокчейн.
+> **EN:** Mini project: keys → address → transaction → sign/verify → mempool → blocks → blockchain.  
+> **DE:** Mini-Projekt: Schlüssel → Adresse → Transaktion → Signieren/Prüfen → Mempool → Blöcke → Blockchain.  
+> **RU:** Мини-проект: ключи → адрес → транзакция → подпись/проверка → mempool → блоки → блокчейн.  
 
 ---
 
 ## Highlights
 
-* **EN:** ECDSA (secp256k1) keypair, address, transaction, signature, verification, mini-mempool, blocks, blockchain integrity check
-* **DE:** ECDSA (secp256k1) Schlüssel, Adresse, Transaktion, Signatur, Verifikation, Mini-Mempool, Blöcke, Blockchain-Integritätsprüfung
+* **EN:** ECDSA (secp256k1) keypair, address, transaction, signature, verification, mini-mempool, blocks, blockchain integrity check  
+* **DE:** ECDSA (secp256k1) Schlüssel, Adresse, Transaktion, Signatur, Verifikation, Mini-Mempool, Blöcke, Blockchain-Integritätsprüfung  
 * **RU:** Генерация ключей (ECDSA secp256k1), адресов, транзакций, подписей, проверка, мини-мемпул, блоки, проверка целостности блокчейна
 
 ---
