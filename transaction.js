@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 // transaction.js — Lesson 1: Digital signatures for transactions
-// Урок 1: Цифровые подписи для транзакций
+// Урок 1: Цифровые подписи для транзакций / Учимся работать с транзакциями / Суть: транзакции → подписи → проверка → mempool
 
 // [RU] Подключаем модуль криптографии из Node.js
 // [EN] Import the built-in cryptography module in Node.js
@@ -50,6 +50,7 @@ console.log("TX (raw):", tx); // [RU] Выводим «сырой» объект
 */
 
 // ---------- 3. Создаём объект транзакции с реальным адресом ----------
+// Создаём транзакцию (отправитель, получатель, сумма, nonce)
 // [RU] Теперь отправитель = наш сгенерированный адрес (связан с публичным ключом).
 // [EN] Now the sender equals our generated address (linked to the public key).
 // [DE] Jetzt ist der Absender unsere generierte Adresse (mit dem öffentlichen Schlüssel verknüpft).
@@ -63,7 +64,7 @@ const tx = {
 console.log("TX (raw):", tx);                      // [RU] Проверим, что from = 0x… / [EN] Check from = 0x… / [DE] Prüfen, dass from = 0x…
 
 
-// ---------- 4. Детерминированная сериализация и хэш ----------
+// ---------- 4. Детерминированная сериализация и хэш / Считаем хэш транзакции----------
 // ---------- 4. Deterministic serialization & hash ----------
 // Если порядок полей не фиксировать подписи будут разные → сеть не сможет согласовать транзакции. Поэтому мы всегда делаем сериализацию в фиксированном порядке полей
 function serializeTx(tx) {
