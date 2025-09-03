@@ -30,7 +30,7 @@ class Block {                         // EN: Block class / DE: Block-Klasse / RU
     return sha256Hex(data);                     // EN: Hex hash / DE: Hex-Hash / RU: Hex-хэш
   }
 
-  recomputeHash() {                             // EN: Recompute after nonce changes / DE: Neu berechnen nach Nonce-Änderungen / RU: Пересчёт после изменения nonce
+  recomputeHash() {                             // EN: Recompute after nonce changes / DE: Neu berechnen nach Nonce-Änderungen / RU: Пересчитать hash после изменения nonce (или другого поля заголовка)
     this.hash = this.computeHash();             // EN: Update cached hash / DE: Cache-Hash aktualisieren / RU: Обновляем хэш
     return this.hash;                           // EN: Return new hash / DE: Neuen Hash zurückgeben / RU: Возвращаем новый хэш
   }
@@ -40,7 +40,7 @@ class Block {                         // EN: Block class / DE: Block-Klasse / RU
     return this.hash.startsWith(prefix);        // EN: True if satisfied / DE: True wenn erfüllt / RU: True если выполнено
   }
 
-  mine(maxIterations = 1e7) {                   // EN: Brute-force nonce / DE: Nonce bruteforcen / RU: Перебор nonce
+  mine(maxIterations = 1e7) {                   // EN: Brute-force nonce / DE: Nonce bruteforcen / RU: Перебор nonce (ограничение 10.000.000 попыток)
     const prefix = '0'.repeat(this.difficulty); // EN: Target / DE: Ziel / RU: Цель
     let it = 0;                                 // EN: Iteration counter / DE: Iterationszähler / RU: Счётчик итераций
     while (!this.hash.startsWith(prefix)) {     // EN: Loop until target / DE: Schleife bis Ziel / RU: Крутим до цели
