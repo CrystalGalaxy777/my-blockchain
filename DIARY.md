@@ -336,4 +336,24 @@ git add test-block.js test-chain.js && git commit -m "test: add PoW and chain sm
 * P2P sync (peers, block propagation), basic explorer.
 * Solidity + Remix VM: first contracts, local deployment pipeline.
 
+---
+
+## 9) Changelog
+- **28.08.2025 (Day 1):** Created repo `my-blockchain`, added `transaction.js` (keys, tx, signature, mempool).  
+- **30.08.2025 (Day 3):** Added `utils.js` (sha256Hex, serializeTx, serializeHeader, simpleTxRoot).  
+- **01.09.2025 (Day 5):** Added `block.js` (difficulty, PoW mining).  
+- **02.09.2025 (Day 6):** Added `blockchain.js` (genesis, mineBlock, isValid).  
+- **03.09.2025 (Day 7):** Created `DIARY.md` (portfolio edition).  
+
+---
+
+## 10) PR-plan
+- [ ] Refactor `transaction.js` to import all helpers from `utils.js`.  
+- [ ] Connect mempool → `mineBlock()` (mine blocks with real pending txs).  
+- [ ] Add balances/state validation (prevent double spending).  
+- [ ] Extend tests (Jest/Mocha or Node assert).  
+- [ ] Enhance README with usage examples & screenshots.  
+- [ ] Export PDF version of `DIARY.md` for portfolio.  
+
+
 > Keep commits small and meaningful. This diary grows as features land — append new steps with dates.
