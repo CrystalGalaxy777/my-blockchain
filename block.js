@@ -1,4 +1,4 @@
-// block.js — Block with PoW mining via utils // EN: Block + mining / DE: Block + Mining / RU: Блок + майнинг
+// block.js — Block with PoW mining via utils // EN: Block + mining / DE: Block + Mining / RU: Блок + майнинг.
 
 const { sha256Hex, serializeHeader, simpleTxRoot } = require('./utils'); // EN: Reuse utils / DE: Utils wiederverwenden / RU: Переиспользуем утилиты
 

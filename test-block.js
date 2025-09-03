@@ -1,4 +1,4 @@
-const Block = require('./block');       // EN: Import Block class / DE: Block-Klasse importieren / RU: Импортируем класс Block
+const Block = require('./block');       // EN: Import Block class / DE: Block-Klasse importieren / RU: Импортируем класс Block.
 
 // создаём блок-кандидат
 const b = new Block({

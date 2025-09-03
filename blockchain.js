@@ -17,7 +17,7 @@ class Blockchain {                        // EN: Chain container / DE: Ketten-Co
       difficulty: this.difficulty,  // EN: Same difficulty / DE: Gleiche Difficulty / RU: Та же сложность
       nonce: 0                      // EN: No mining needed / DE: Kein Mining nötig / RU: Майнинг не нужен
     }); 
-    return b;                       // EN: Return genesis / DE: Genesis zurückgeben / RU: Вернуть генезис
+    return b;                       // EN: Return genesis / DE: Genesis zurückgeben / RU: Вернуть генезис.
   }
 
   latest() { return this.chain[this.chain.length - 1]; } // EN: Tail block / DE: Letzter Block / RU: Последний блок

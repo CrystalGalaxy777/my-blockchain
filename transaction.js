@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 // transaction.js — Lesson 1: Digital signatures for transactions
-// Урок 1: Цифровые подписи для транзакций / Учимся работать с транзакциями / Суть: транзакции → подписи → проверка → mempool
+// Урок 1: Цифровые подписи для транзакций / Учимся работать с транзакциями / Суть: транзакции → подписи → проверка → mempool.
 
 // [RU] Подключаем модуль криптографии из Node.js
 // [EN] Import the built-in cryptography module in Node.js

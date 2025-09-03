@@ -1,5 +1,5 @@
 // utils.js — Shared helpers (crypto & serialization) // EN: Shared helpers / DE: Gemeinsame Helfer / RU: Общие утилиты
-// всё, что связано с хэшированием и сериализацией, хранится тут
+// всё, что связано с хэшированием и сериализацией, хранится тут.
 const crypto = require('crypto');     // EN: Import Node.js crypto / DE: Node.js-Krypto importieren / RU: Подключаем модуль crypto
 // считает SHA-256 хэш в hex
 function sha256Hex(data) {            // EN: SHA-256 wrapper / DE: SHA-256-Hülle / RU: Обёртка для SHA-256
