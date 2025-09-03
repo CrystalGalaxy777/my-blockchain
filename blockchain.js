@@ -1,43 +1,60 @@
-// blockchain.js — Chapter 4: Minimal Blockchain (JS)                                // [RU/EN/DE] Простейшая цепочка блоков / Minimal blockchain / Minimale Blockchain
-const { Block, simpleTxRoot, sha256Hex, serializeHeader } = require('./block');     // [RU/EN/DE] Импорт блока и утилит / Import block & utils / Block & Utils importieren
+// blockchain.js — Simple chain with PoW mining // EN: Simple PoW chain / DE: Einfache PoW-Chain / RU: Простая цепь с PoW
 
-class Blockchain {                                                                   // [RU/EN/DE] Класс цепочки / Blockchain class / Blockchain-Klasse
-  constructor() {                                                                   
-    this.chain = [ new Block(0, '0'.repeat(64), []) ];                               // [RU/EN/DE] Генезис-блок в цепи / Genesis block in chain / Genesis-Block in Kette
-  }                                                                                  // Генезис-блок = самый первый, у него нет предыдущего.Чтобы структура не ломалась (ведь поле prevHash обязано быть), туда кладут строку из 64 нулей. Это как «заглушка» → символическое начало цепи.
+const Block = require('./block');         // EN: Use Block class / DE: Block-Klasse nutzen / RU: Используем класс Block
 
-  tip() {                                                                            // [RU/EN/DE] Последний блок / Last block / Letzter Block
-    return this.chain[this.chain.length - 1];                                        // [RU/EN/DE] Вернуть хвост массива / Return array tail / Arrayende zurückgeben
-  }                                                                                  
+class Blockchain {                        // EN: Chain container / DE: Ketten-Container / RU: Контейнер цепочки
+  constructor({ difficulty = 3 } = {}) {  // EN: Global difficulty / DE: Globale Difficulty / RU: Глобальная сложность
+    this.difficulty = difficulty;         // EN: Store difficulty / DE: Difficulty speichern / RU: Сохраняем сложность
+    this.chain = [this.createGenesisBlock()]; // EN: Start with genesis / DE: Start mit Genesis / RU: Начинаем с генезиса
+  }
 
-  addBlock(txs) {                                                                     // [RU/EN/DE] Добавить новый блок / Add new block / Neuen Block hinzufügen
-    const list = Array.isArray(txs) ? txs : [];                                      // [RU/EN/DE] Нормализуем вход в массив / Normalize input to array / Eingabe zu Array normalisieren
-    const prev = this.tip();                                                         // [RU/EN/DE] Текущий последний блок / Current tip / Aktuelle Spitze
-    const b = new Block(prev.header.index + 1, prev.hash, list);                     // [RU/EN/DE] Новый блок со ссылкой назад / New block linking back / Neuer Block mit Rückverweis
+  createGenesisBlock() {            // EN: Build genesis block / DE: Genesis-Block erzeugen / RU: Создать генезис-блок
+    const b = new Block({ 
+      index: 0,                     // EN: Height 0 / DE: Höhe 0 / RU: Высота 0
+      previousHash: '0'.repeat(64), // EN: Null prev-hash / DE: Null-Vorhash / RU: Нулевой предыдущий хэш
+      timestamp: Date.now(),        // EN: Now / DE: Jetzt / RU: Сейчас
+      transactions: [],             // EN: Empty payload / DE: Leere Nutzlast / RU: Пустая нагрузка
+      difficulty: this.difficulty,  // EN: Same difficulty / DE: Gleiche Difficulty / RU: Та же сложность
+      nonce: 0                      // EN: No mining needed / DE: Kein Mining nötig / RU: Майнинг не нужен
+    }); 
+    return b;                       // EN: Return genesis / DE: Genesis zurückgeben / RU: Вернуть генезис
+  }
 
-    if (b.header.prevHash !== prev.hash) throw new Error('Broken prevHash link');    // [RU/EN/DE] Проверка связи / Link check / Verknüpfungsprüfung
-    if (b.header.txRoot !== simpleTxRoot(b.txs)) throw new Error('Bad txRoot');      // [RU/EN/DE] Контроль корня tx / Tx-root check / Tx-Root prüfen
+  latest() { return this.chain[this.chain.length - 1]; } // EN: Tail block / DE: Letzter Block / RU: Последний блок
 
-    const recomputed = sha256Hex(serializeHeader(b.header));                         // [RU/EN/DE] Пересчитать хэш заголовка / Recompute header hash / Header-Hash neu berechnen
-    if (recomputed !== b.hash) throw new Error('Header hash mismatch');              // [RU/EN/DE] Сравнить с записанным / Compare with stored / Mit gespeichertem vergleichen
+  addBlock(block) {                                                         // EN: Validate & append / DE: Validieren & anhängen / RU: Проверить и добавить
+    const tip = this.latest(); 
+    if (block.index !== tip.index + 1) throw new Error('Bad index');        // EN: Height check / DE: Höhen-Check / RU: Проверка высоты
+    if (block.previousHash !== tip.hash) throw new Error('Bad prevHash');   // EN: Link check / DE: Verknüpfungs-Check / RU: Проверка связи
+    if (!block.meetsDifficulty()) throw new Error('Not mined');             // EN: PoW must hold / DE: PoW muss gelten / RU: Должен соблюдаться PoW
+    if (block.computeHash() !== block.hash) throw new Error('Hash mismatch'); // EN: Integrity / DE: Integrität / RU: Целостность
+    this.chain.push(block);                                                  // EN: Append / DE: Anhängen / RU: Добавляем
+    return block;                                                            // EN: Return appended / DE: Zurückgeben / RU: Вернуть добавленный
+  }
 
-    this.chain.push(b);                                                              // [RU/EN/DE] Принять блок в цепь / Append block to chain / Block an Kette anhängen
-    return b;                                                                        // [RU/EN/DE] Вернуть добавленный блок / Return added block / Hinzugefügten Block zurückgeben
-  }                                                                                  
+  mineBlock(transactions = []) {        // EN: Build→mine→add / DE: Bauen→minen→hinzufügen / RU: Создать→майнить→добавить
+    const block = new Block({ 
+      index: this.latest().index + 1,   // EN: Next height / DE: Nächste Höhe / RU: Следующая высота
+      previousHash: this.latest().hash, // EN: Link to tip / DE: Verknüpfung zur Spitze / RU: Связь с вершиной
+      timestamp: Date.now(),            // EN: Now / DE: Jetzt / RU: Сейчас
+      transactions,                     // EN: Payload / DE: Nutzlast / RU: Полезная нагрузка
+      difficulty: this.difficulty,      // EN: Target / DE: Ziel / RU: Цель
+      nonce: 0                          // EN: Start nonce / DE: Start-Nonce / RU: Начальный nonce
+    }); 
+    block.mine();                       // EN: PoW loop / DE: PoW-Schleife / RU: Цикл PoW
+    return this.addBlock(block);        // EN: Validate & append / DE: Validieren & anhängen / RU: Проверить и добавить
+  }
 
-  isValid() {                                                                         // [RU/EN/DE] Проверка целостности цепи / Chain integrity check / Kettenintegritätsprüfung
-    for (let i = 1; i < this.chain.length; i++) {                                    // [RU/EN/DE] Идём по блокам с 1 / Iterate from 1 / Ab 1 iterieren
-      const prev = this.chain[i - 1];                                                // [RU/EN/DE] Предыдущий блок / Previous block / Vorheriger Block
-      const cur  = this.chain[i];                                                    // [RU/EN/DE] Текущий блок / Current block / Aktueller Block
-
-      if (cur.header.prevHash !== prev.hash) return false;                           // [RU/EN/DE] Нарушена ссылка назад / Back link broken / Rückverweis defekt
-      if (cur.header.txRoot !== simpleTxRoot(cur.txs)) return false;                 // [RU/EN/DE] Неверный txRoot / Wrong txRoot / Falscher Tx-Root
-
-      const h = sha256Hex(serializeHeader(cur.header));                              // [RU/EN/DE] Пересчёт хэша заголовка / Recompute header hash / Header-Hash neu berechnen
-      if (h !== cur.hash) return false;                                              // [RU/EN/DE] Хэш не совпал / Hash mismatch / Hash stimmt nicht
+  isValid() {                           // EN: Full chain check / DE: Komplette Kettenprüfung / RU: Полная проверка цепи
+    for (let i = 1; i < this.chain.length; i++) { 
+      const prev = this.chain[i - 1]; 
+      const cur = this.chain[i]; 
+      if (cur.previousHash !== prev.hash) return false; // EN: Link ok? / DE: Link ok? / RU: Связь ок?
+      if (!cur.meetsDifficulty()) return false;         // EN: PoW ok? / DE: PoW ok? / RU: PoW ок?
+      if (cur.computeHash() !== cur.hash) return false; // EN: Hash ok? / DE: Hash ok? / RU: Хэш ок?
     }
-    return true;                                                                      // [RU/EN/DE] Цепь валидна / Chain is valid / Kette ist gültig
-  }                                                                                  
-}                                                                                    
+    return true;                                        // EN: All good / DE: Alles gut / RU: Всё хорошо
+  }
+}
 
-module.exports = { Blockchain };                                                     // [RU/EN/DE] Экспорт класса / Export class / Klasse exportieren
+module.exports = Blockchain; // EN: Export class / DE: Klasse exportieren / RU: Экспорт класса
