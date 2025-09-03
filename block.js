@@ -30,7 +30,7 @@ class Block {                         // EN: Block class / DE: Block-Klasse / RU
     return sha256Hex(data);                     // EN: Hex hash / DE: Hex-Hash / RU: Hex-хэш
   }
 
-  recomputeHash() { // EN: Recompute after nonce changes / DE: Neu berechnen nach Nonce-Änderungen / RU: Пересчёт после изменения nonce
+  recomputeHash() {                             // EN: Recompute after nonce changes / DE: Neu berechnen nach Nonce-Änderungen / RU: Пересчёт после изменения nonce
     this.hash = this.computeHash();             // EN: Update cached hash / DE: Cache-Hash aktualisieren / RU: Обновляем хэш
     return this.hash;                           // EN: Return new hash / DE: Neuen Hash zurückgeben / RU: Возвращаем новый хэш
   }
