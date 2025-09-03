@@ -162,7 +162,7 @@ console.log('Tamper test:',                                             // EN: R
 try {                                                                   // EN: Try to add to mempool / DE: In Mempool einfügen versuchen / RU: Пытаемся добавить в mempool
   addToMempool(tx, signature, publicKey);                               // EN: Validate & push / DE: Validieren & push / RU: Проверить и добавить
   console.log('Mempool size:', mempool.length);                         // EN: Should be 1 / DE: Sollte 1 sein / RU: Должно быть 1
-} catch (e) {                                                            // EN: On error / DE: Bei Fehler / RU: В случае ошибки
+} catch (e) {                                                           // EN: On error / DE: Bei Fehler / RU: В случае ошибки
   console.log('Mempool reject:', e.message);                            // EN: Print reason / DE: Grund ausgeben / RU: Вывести причину
 }                                                                       // EN: End try-catch / DE: Ende Try-Catch / RU: Конец try-catch
 
@@ -236,7 +236,7 @@ class Block {                                        // EN: Block class / DE: Bl
   }
 }
 
-module.exports = Block;                               // EN: Export class / DE: Klasse exportieren / RU: Экспорт класса
+module.exports = Block;                              // EN: Export class / DE: Klasse exportieren / RU: Экспорт класса
 
 ```
 
@@ -283,18 +283,18 @@ class Blockchain {                                   // EN: Chain container / DE
     if (block.previousHash !== tip.hash)      throw new Error('Bad prevHash');  // EN: Link check / DE: Verknüpfungs-Check / RU: Проверка связи
     if (!block.meetsDifficulty())            throw new Error('Not mined');      // EN: PoW must hold / DE: PoW muss gelten / RU: Должен соблюдаться PoW
     if (block.computeHash() !== block.hash)  throw new Error('Hash mismatch');  // EN: Integrity / DE: Integrität / RU: Целостность
-    this.chain.push(block);                       // EN: Append / DE: Anhängen / RU: Добавляем
-    return block;                                 // EN: Return appended / DE: Zurückgeben / RU: Вернуть добавленный
+    this.chain.push(block);                         // EN: Append / DE: Anhängen / RU: Добавляем
+    return block;                                   // EN: Return appended / DE: Zurückgeben / RU: Вернуть добавленный
   }
 
-  mineBlock(transactions = []) {                   // EN: Build→mine→add / DE: Bauen→minen→hinzufügen / RU: Создать→майнить→добавить
+  mineBlock(transactions = []) {                    // EN: Build→mine→add / DE: Bauen→minen→hinzufügen / RU: Создать→майнить→добавить
     const block = new Block({
-      index:        this.latest().index + 1,       // EN: Next height / DE: Nächste Höhe / RU: Следующая высота
-      previousHash: this.latest().hash,            // EN: Link to tip / DE: Verknüpfung zur Spitze / RU: Связь с вершиной
-      timestamp:    Date.now(),                    // EN: Now / DE: Jetzt / RU: Сейчас
+      index:        this.latest().index + 1,        // EN: Next height / DE: Nächste Höhe / RU: Следующая высота
+      previousHash: this.latest().hash,             // EN: Link to tip / DE: Verknüpfung zur Spitze / RU: Связь с вершиной
+      timestamp:    Date.now(),                     // EN: Now / DE: Jetzt / RU: Сейчас
       transactions,                                 // EN: Payload / DE: Nutzlast / RU: Полезная нагрузка
-      difficulty:   this.difficulty,               // EN: Target / DE: Ziel / RU: Цель
-      nonce:        0                              // EN: Start nonce / DE: Start-Nonce / RU: Начальный nonce
+      difficulty:   this.difficulty,                // EN: Target / DE: Ziel / RU: Цель
+      nonce:        0                               // EN: Start nonce / DE: Start-Nonce / RU: Начальный nonce
     });
     block.mine();                                   // EN: PoW loop / DE: PoW-Schleife / RU: Цикл PoW
     return this.addBlock(block);                    // EN: Validate & append / DE: Validieren & anhängen / RU: Проверить и добавить
@@ -308,11 +308,11 @@ class Blockchain {                                   // EN: Chain container / DE
       if (!cur.meetsDifficulty())   return false;       // EN: PoW ok?  / DE: PoW ok?  / RU: PoW ок?
       if (cur.computeHash() !== cur.hash) return false; // EN: Hash ok?  / DE: Hash ok?  / RU: Хэш ок?
     }
-    return true;                                      // EN: All good / DE: Alles gut / RU: Всё хорошо
+return true;                                        // EN: All good / DE: Alles gut / RU: Всё хорошо
   }
 }
 
-module.exports = Blockchain;                           // EN: Export class / DE: Klasse exportieren / RU: Экспорт класса
+module.exports = Blockchain;                        // EN: Export class / DE: Klasse exportieren / RU: Экспорт класса
 
 ```
 
