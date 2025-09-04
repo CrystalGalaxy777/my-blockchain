@@ -82,9 +82,9 @@ Timestamp: 1693681234567  (stable=true)
 
 ## Options (Flags)
 
-> **EN:** Available CLI flags for `pow-demo.js`
-> **DE:** Verfügbare CLI-Flags für `pow-demo.js`
-> **RU:** Доступные CLI-флаги для `pow-demo.js`
+> **EN:** Available CLI flags for `pow-demo.js`  
+> **DE:** Verfügbare CLI-Flags für `pow-demo.js`  
+> **RU:** Доступные CLI-флаги для `pow-demo.js`  
 
 | Flag                | Short | Default | Description (EN)                                    | Beschreibung (DE)                                            | Описание (RU)                                                        |
 | ------------------- | ----- | ------- | --------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------- |
@@ -102,9 +102,9 @@ Timestamp: 1693681234567  (stable=true)
 node pow-demo.js --difficulty 4 --logEvery 10000 -t
 ```
 
-> **EN:** Mines with difficulty 4, logs progress every 10k attempts, uses stable timestamp.
-> **DE:** Minen mit Schwierigkeit 4, Fortschritt alle 10k Versuche, stabiler Zeitstempel.
-> **RU:** Майнинг со сложностью 4, прогресс каждые 10k попыток, фиксированный timestamp.
+> **EN:** Mines with difficulty 4, logs progress every 10k attempts, uses stable timestamp.  
+> **DE:** Minen mit Schwierigkeit 4, Fortschritt alle 10k Versuche, stabiler Zeitstempel.  
+> **RU:** Майнинг со сложностью 4, прогресс каждые 10k попыток, фиксированный timestamp.  
 
 ---
 
