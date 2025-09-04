@@ -1,4 +1,4 @@
-````md
+
 # My Blockchain Learning (JS)
 
 > **EN:** Mini project: keys → address → transaction → sign/verify → mempool → blocks → blockchain.  
