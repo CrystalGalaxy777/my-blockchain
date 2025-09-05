@@ -123,26 +123,21 @@ console.log("Valid after tamper?", verifyTx(tamperedJson, signature, publicKey))
 // [EN] "Mini mempool" — a simple queue holding unconfirmed transactions temporarily.
 // [DE] "Mini-Mempool" — einfache Warteschlange für unbestätigte Transaktionen.
 
-const mempool = [];                                          // [RU/EN/DE] Пустой массив / Empty array / Leeres Array
+const mempool = [];                                                     // EN: Pending txs / DE: Ausstehende Txs / RU: Неподтверждённые транзакции
 
-function addToMempool(txObj, sigHex, pubKeyPem) {            // [RU/EN/DE] Функция с 3 параметрами / Function with 3 params / Funktion mit 3 Parametern
-    const json = serializeTx(txObj);                         // [RU/EN/DE] Детерм. JSON транзакции / Deterministic tx JSON / Deterministisches Tx-JSON
-    const ok   = verifyTx(json, sigHex, pubKeyPem);          // [RU/EN/DE] Проверка подписи / Verify signature / Signatur prüfen
-    if (!ok) throw new Error('Invalid signature');           // [RU/EN/DE] Ошибка при неверной подписи / Error if invalid / Fehler bei ungültiger Signatur
+function addToMempool(txObj, sigHex, pubKeyPem) {                       // EN: Validate & add / DE: Validieren & hinzufügen / RU: Проверить и добавить
+  const canon = serializeTx(txObj);                                     // EN: Canonical form / DE: Kanonische Form / RU: Каноничный вид
+  if (!verifyTx(canon, sigHex, pubKeyPem))                              // EN: Bad signature? / DE: Schlechte Signatur? / RU: Подпись неверна?
+    throw new Error('Invalid signature');                               // EN: Reject / DE: Ablehnen / RU: Отклонить
+    
+  if (txObj.from !== toAddress(pubKeyPem))                              // EN: Address must match pubkey / DE: Adresse muss zum Pubkey passen / RU: Адрес должен соответствовать pubkey
+    throw new Error('From address does not match public key');          // EN: Reject / DE: Ablehnen / RU: Отклонить
 
-    const expectedFrom = toAddress(pubKeyPem);               // [RU/EN/DE] Адрес из pubKey / Address from pubKey / Adresse aus Public Key
-    if (txObj.from !== expectedFrom)                         // [RU/EN/DE] Сравнить заявленный и вычисленный адрес / Compare tx.from vs derived / tx.from vs abgeleitet vergleichen
-        throw new Error('From address does not match public key'); // [RU/EN/DE] Несовпадение адреса / Address mismatch / Adressabweichung
-
-    const dup = mempool.some(e =>                            // [RU/EN/DE] Проверка дубликата / Duplicate check / Duplikatprüfung
-        e.tx.from === txObj.from && e.tx.nonce === txObj.nonce // [RU/EN/DE] Та же пара (from, nonce) / Same (from, nonce) / Gleiches (from, nonce)
-    );                                                       // [RU/EN/DE] Завершение предиката / Predicate end / Prädikat Ende
-
-    if (dup) throw new Error('Duplicate (from, nonce) in mempool'); // [RU/EN/DE] Дубликат запрещён / Duplicate forbidden / Duplikat verboten
-
-    mempool.push({ tx: txObj, signature: sigHex });          // [RU/EN/DE] Добавить {tx, signature} / Push {tx, signature} / {tx, signature} anhängen
-    console.log('Mempool size:', mempool.length);            // [RU/EN/DE] Лог размера mempool / Log mempool size / Mempool-Größe ausgeben
-}
+  const dup = mempool.some(e => e.tx.from === txObj.from && e.tx.nonce === txObj.nonce); // EN: Duplicate (from,nonce)? / DE: Duplikat (from,nonce)? / RU: Дубликат (from,nonce)?
+  if (dup)                                                              // EN: If duplicate / DE: Falls Duplikat / RU: Если дубликат
+    throw new Error('Duplicate (from, nonce) in mempool');              // EN: Reject / DE: Ablehnen / RU: Отклонить
+  mempool.push({ tx: txObj, signature: sigHex });                       // EN: Accept into mempool / DE: In Mempool aufnehmen / RU: Добавить в mempool
+}                                                                       // EN: End addToMempool / DE: Ende addToMempool / RU: Конец addToMempool
 
 try {                                                        // [RU/EN/DE] Попытка добавления / Try add / Versuch hinzufügen
     addToMempool(tx, signature, publicKey);                  // [RU/EN/DE] Добавить подписанную tx / Add signed tx / Signierte Tx hinzufügen

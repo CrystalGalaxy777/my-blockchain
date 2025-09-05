@@ -1,29 +1,31 @@
 # DIARY.md — my-blockchain (Portfolio Edition)
 
-**Repo:** `my-blockchain`
-**Date:** 03.09.2025
-**Goal:** Build a minimal Proof‑of‑Work blockchain (JS/Node) with transactions, signatures, mempool, blocks, chain validation.
+**Repo:** `my-blockchain`  
+**Date:** 03.09.2025  
+**Goal:** Build a minimal Proof-of-Work blockchain (JS/Node) with transactions, signatures, mempool, blocks, chain validation.
 
-> This diary is written as a **reproducible build log**: if you follow the steps below, you can recreate the project from scratch. Explanations are concise and professional. Code comments are **inline** in **EN/DE/RU**.
+> This diary is written as a **reproducible build log**. Follow the steps to recreate the project from scratch.  
+> Code comments are **inline** and **tri-lingual**: `// EN: … / DE: … / RU: …`.
 
 ---
 
 ## Table of Contents
-
-1. [Create the repository](#1-create-the-repository)
-2. [Utilities: crypto & serialization (`utils.js`)](#2-utilities-crypto--serialization-utilsjs)
-3. [Transactions, signatures, mempool (`transaction.js`)](#3-transactions-signatures-mempool-transactionjs)
-4. [Block with PoW mining (`block.js`)](#4-block-with-pow-mining-blockjs)
-5. [Blockchain container (`blockchain.js`)](#5-blockchain-container-blockchainjs)
-6. [Smoke tests (`test-block.js`, `test-chain.js`)](#6-smoke-tests-test-blockjs-test-chainjs)
-7. [Commits & Project hygiene](#7-commits--project-hygiene)
-8. [Next steps](#8-next-steps)
+1. [Create the repository](#1-create-the-repository)  
+2. [Utilities: crypto & serialization (`utils.js`)](#2-utilities-crypto--serialization-utilsjs)  
+3. [Transactions, signatures, mempool (`transaction.js`)](#3-transactions-signatures-mempool-transactionjs)  
+4. [Block with PoW mining (`block.js`)](#4-block-with-pow-mining-blockjs)  
+5. [Blockchain container (`blockchain.js`)](#5-blockchain-container-blockchainjs)  
+6. [Smoke tests (`test-block.js`, `test-chain.js`)](#6-smoke-tests-test-blockjs-test-chainjs)  
+7. [Commits & Project hygiene](#7-commits--project-hygiene)  
+8. [Next steps](#8-next-steps)  
+9. [Changelog](#9-changelog)  
+10. [PR-plan](#10-pr-plan)
 
 ---
 
 ## 1) Create the repository
 
-**Intent:** keep repo clean and professional from the start; avoid “setup” chatter in portfolio.
+**Intent:** keep repo clean and professional from the start; avoid “setup” noise.
 
 ```bash
 mkdir my-blockchain && cd my-blockchain
@@ -91,7 +93,7 @@ git add utils.js && git commit -m "feat(utils): add sha256Hex/serializeTx/serial
 Create `transaction.js`:
 
 ```js
-// transaction.js — Keys, address, tx, sign/verify, mempool // EN: Demo script / DE: Demo-Skript / RU: Учебный скрипт
+// transaction.js — Keys, address, tx, sign/verify, mempool            // EN: Demo script / DE: Demo-Skript / RU: Учебный скрипт
 
 const crypto = require('crypto');                                      // EN: Node crypto module / DE: Node-Krypto-Modul / RU: Модуль crypto
 const { serializeTx, sha256Hex } = require('./utils');                 // EN: Reuse helpers from utils / DE: Helfer aus utils nutzen / RU: Утилиты из utils
@@ -143,8 +145,10 @@ function addToMempool(txObj, sigHex, pubKeyPem) {                       // EN: V
   const canon = serializeTx(txObj);                                     // EN: Canonical form / DE: Kanonische Form / RU: Каноничный вид
   if (!verifyTx(canon, sigHex, pubKeyPem))                              // EN: Bad signature? / DE: Schlechte Signatur? / RU: Подпись неверна?
     throw new Error('Invalid signature');                               // EN: Reject / DE: Ablehnen / RU: Отклонить
+    
   if (txObj.from !== toAddress(pubKeyPem))                              // EN: Address must match pubkey / DE: Adresse muss zum Pubkey passen / RU: Адрес должен соответствовать pubkey
     throw new Error('From address does not match public key');          // EN: Reject / DE: Ablehnen / RU: Отклонить
+
   const dup = mempool.some(e => e.tx.from === txObj.from && e.tx.nonce === txObj.nonce); // EN: Duplicate (from,nonce)? / DE: Duplikat (from,nonce)? / RU: Дубликат (from,nonce)?
   if (dup)                                                              // EN: If duplicate / DE: Falls Duplikat / RU: Если дубликат
     throw new Error('Duplicate (from, nonce) in mempool');              // EN: Reject / DE: Ablehnen / RU: Отклонить
