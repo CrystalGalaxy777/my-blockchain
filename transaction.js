@@ -123,21 +123,21 @@ console.log("Valid after tamper?", verifyTx(tamperedJson, signature, publicKey))
 // [EN] "Mini mempool" — a simple queue holding unconfirmed transactions temporarily.
 // [DE] "Mini-Mempool" — einfache Warteschlange für unbestätigte Transaktionen.
 
-const mempool = [];                                                     // EN: Pending txs / DE: Ausstehende Txs / RU: Неподтверждённые транзакции
+const mempool = [];                                           // EN: Pending txs / DE: Ausstehende Txs / RU: Неподтверждённые транзакции
 
-function addToMempool(txObj, sigHex, pubKeyPem) {                       // EN: Validate & add / DE: Validieren & hinzufügen / RU: Проверить и добавить
-  const canon = serializeTx(txObj);                                     // EN: Canonical form / DE: Kanonische Form / RU: Каноничный вид
-  if (!verifyTx(canon, sigHex, pubKeyPem))                              // EN: Bad signature? / DE: Schlechte Signatur? / RU: Подпись неверна?
-    throw new Error('Invalid signature');                               // EN: Reject / DE: Ablehnen / RU: Отклонить
+function addToMempool(txObj, sigHex, pubKeyPem) {             // EN: Validate & add / DE: Validieren & hinzufügen / RU: Проверить и добавить
+  const canon = serializeTx(txObj);                           // EN: Canonical form / DE: Kanonische Form / RU: Каноничный вид
+  if (!verifyTx(canon, sigHex, pubKeyPem))                    // EN: Bad signature? / DE: Schlechte Signatur? / RU: Подпись неверна?
+    throw new Error('Invalid signature');                     // EN: Reject / DE: Ablehnen / RU: Отклонить
     
-  if (txObj.from !== toAddress(pubKeyPem))                              // EN: Address must match pubkey / DE: Adresse muss zum Pubkey passen / RU: Адрес должен соответствовать pubkey
-    throw new Error('From address does not match public key');          // EN: Reject / DE: Ablehnen / RU: Отклонить
+  if (txObj.from !== toAddress(pubKeyPem))                    // EN: Address must match pubkey / DE: Adresse muss zum Pubkey passen / RU: Адрес должен соответствовать pubkey
+    throw new Error('From address does not match public key');// EN: Reject / DE: Ablehnen / RU: Отклонить
 
   const dup = mempool.some(e => e.tx.from === txObj.from && e.tx.nonce === txObj.nonce); // EN: Duplicate (from,nonce)? / DE: Duplikat (from,nonce)? / RU: Дубликат (from,nonce)?
-  if (dup)                                                              // EN: If duplicate / DE: Falls Duplikat / RU: Если дубликат
-    throw new Error('Duplicate (from, nonce) in mempool');              // EN: Reject / DE: Ablehnen / RU: Отклонить
-  mempool.push({ tx: txObj, signature: sigHex });                       // EN: Accept into mempool / DE: In Mempool aufnehmen / RU: Добавить в mempool
-}                                                                       // EN: End addToMempool / DE: Ende addToMempool / RU: Конец addToMempool
+  if (dup)                                                   // EN: If duplicate / DE: Falls Duplikat / RU: Если дубликат
+    throw new Error('Duplicate (from, nonce) in mempool');   // EN: Reject / DE: Ablehnen / RU: Отклонить
+  mempool.push({ tx: txObj, signature: sigHex });            // EN: Accept into mempool / DE: In Mempool aufnehmen / RU: Добавить в mempool
+}                                                            // EN: End addToMempool / DE: Ende addToMempool / RU: Конец addToMempool
 
 try {                                                        // [RU/EN/DE] Попытка добавления / Try add / Versuch hinzufügen
     addToMempool(tx, signature, publicKey);                  // [RU/EN/DE] Добавить подписанную tx / Add signed tx / Signierte Tx hinzufügen
