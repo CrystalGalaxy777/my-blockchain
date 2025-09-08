@@ -1,5 +1,5 @@
 # === Node.js dependencies ===
-node_modules/          # [RU/EN/DE] Папка с зависимостями / Dependencies folder / Abhängigkeitsordner
+#node_modules/          # [RU/EN/DE] Папка с зависимостями / Dependencies folder / Abhängigkeitsordner
 
 # === Environment variables ===
 .env                   # [RU/EN/DE] Секретные ключи, токены / Secret keys, tokens / Geheimnisse, Tokens
