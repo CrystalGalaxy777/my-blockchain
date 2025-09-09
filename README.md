@@ -129,3 +129,10 @@ node pow-demo.js --difficulty 4 --logEvery 10000 -t
 * **DE:** Neue `Blockchain`-Klasse: verwaltet Blockkette, überprüft Integrität (`isValid`).
 
 * **RU:** Добавлен класс `Blockchain`: управляет цепочкой блоков, проверяет целостность (`isValid`).
+
+---
+## License / Lizenz / Лицензия
+
+- **EN:** This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.  
+- **DE:** Dieses Projekt ist unter der MIT-Lizenz veröffentlicht — siehe [LICENSE](./LICENSE).  
+- **RU:** Этот проект распространяется по лицензии MIT — см. файл [LICENSE](./LICENSE).
