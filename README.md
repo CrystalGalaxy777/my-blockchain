@@ -1,12 +1,12 @@
 
 # My Blockchain Learning (JS)
 
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-brightgreen)](https://nodejs.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
-[![Stars](https://img.shields.io/github/stars/CrystalGalaxy777/my-blockchain?style=social)](https://github.com/CrystalGalaxy777/my-blockchain/stargazers)
-[![Last Commit](https://img.shields.io/github/last-commit/CrystalGalaxy777/my-blockchain)](https://github.com/CrystalGalaxy777/my-blockchain/commits/main)
-[![Repo Size](https://img.shields.io/github/repo-size/CrystalGalaxy777/my-blockchain)](https://github.com/CrystalGalaxy777/my-blockchain)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-brightgreen)](https://nodejs.org/)  
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)  
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()  
+[![Stars](https://img.shields.io/github/stars/CrystalGalaxy777/my-blockchain?style=social)](https://github.com/CrystalGalaxy777/my-blockchain/stargazers)  
+[![Last Commit](https://img.shields.io/github/last-commit/CrystalGalaxy777/my-blockchain)](https://github.com/CrystalGalaxy777/my-blockchain/commits/main)  
+[![Repo Size](https://img.shields.io/github/repo-size/CrystalGalaxy777/my-blockchain)](https://github.com/CrystalGalaxy777/my-blockchain)  
 
 
 
