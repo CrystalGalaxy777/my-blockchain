@@ -11,7 +11,7 @@
     "start": "node transaction.js",  
     "block": "node block.js",        
     "chain": "node blockchain.js",   
-    "test": "echo \"No tests yet\" && exit 0"
+    "test": "node test/basic.test.js"
   },
 
   "//repository": "GitHub project URL",
