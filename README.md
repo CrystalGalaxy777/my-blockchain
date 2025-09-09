@@ -1,6 +1,8 @@
 
 # My Blockchain Learning (JS)
 
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-brightgreen)](https://nodejs.org/)
+
 > **EN:** Mini project: keys → address → transaction → sign/verify → mempool → blocks → blockchain.  
 > **DE:** Mini-Projekt: Schlüssel → Adresse → Transaktion → Signieren/Prüfen → Mempool → Blöcke → Blockchain.  
 > **RU:** Мини-проект: ключи → адрес → транзакция → подпись/проверка → mempool → блоки → блокчейн.  
