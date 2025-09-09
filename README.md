@@ -133,6 +133,10 @@ node pow-demo.js --difficulty 4 --logEvery 10000 -t
 ---
 ## License / Lizenz / Лицензия
 
-- **EN:** This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.  
+- **EN:** This project is licensed under the MIT License — see [LICENSE](./LICENSE).  
 - **DE:** Dieses Projekt ist unter der MIT-Lizenz veröffentlicht — siehe [LICENSE](./LICENSE).  
-- **RU:** Этот проект распространяется по лицензии MIT — см. файл [LICENSE](./LICENSE).
+- **RU:** Этот проект распространяется по лицензии MIT — см. [LICENSE](./LICENSE).  
+
+👉 For a formatted multi-language explanation, see [LICENSE.md](./LICENSE.md).
+
+
