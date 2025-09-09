@@ -1,5 +1,9 @@
 # ROADMAP – My Blockchain Project  
 
+> **EN:** Learning roadmap from basic cryptography to blockchain & smart contracts.  
+> **DE:** Lernfahrplan von Kryptographie-Grundlagen bis Blockchain & Smart Contracts.  
+> **RU:** Учебная дорожная карта от криптографии до блокчейна и смарт-контрактов.  
+
 ---
 
 ## ✅ Completed so far / Bisher umgesetzt / Уже реализовано  
@@ -24,44 +28,50 @@
    - DE: Genesis-Block, addBlock() mit Verkettung, isValid() zur Kettenprüfung  
    - RU: Генезис-блок, addBlock() с цепочкой, isValid() для проверки целостности  
 
-5. **Test Script / Testskript / Тестовый скрипт (`testBlockchain.js`)**  
+5. **Proof-of-Work (Mining)**  
+   - EN: Implemented mining with `difficulty` and `nonce`, block hash must start with N zeros  
+   - DE: Mining mit `difficulty` und `nonce`, Block-Hash muss mit N Nullen beginnen  
+   - RU: Реализован майнинг с `difficulty` и `nonce`, хэш блока должен начинаться с N нулей  
+
+6. **Test Script / Testskript / Тестовый скрипт (`testBlockchain.js`)**  
    - EN: End-to-End: Transaction → Mempool → Block → Blockchain  
    - DE: End-to-End: Transaktion → Mempool → Block → Blockchain  
    - RU: Полный цикл: Транзакция → Мempool → Блок → Блокчейн  
-   - EN: Includes manipulation test (tampered TX invalid) & block tampering check (`isValid() = false`)  
-   - DE: Enthält Manipulationstest (veränderte TX ungültig) & Block-Manipulation (`isValid() = false`)  
-   - RU: Проверка на подделку транзакции и блока (`isValid() = false`)  
+   - Includes manipulation test & block tampering check (`isValid() = false`)  
 
-6. **README & GitHub**  
-   - EN: Documented steps, expected outputs, TODO experiments, `.gitignore` without `node_modules/`  
-   - DE: Schritte dokumentiert, erwartete Ausgaben, TODO-Experimente, `.gitignore` ohne `node_modules/`  
-   - RU: Документация шагов, ожидаемый вывод, эксперименты по TODO, `.gitignore` без `node_modules/`  
+7. **README & GitHub**  
+   - EN: Documented steps, expected outputs, `.gitignore` without `node_modules/`  
+   - DE: Schritte dokumentiert, erwartete Ausgaben, `.gitignore` ohne `node_modules/`  
+   - RU: Документация шагов, ожидаемый вывод, `.gitignore` без `node_modules/`  
 
 ---
 
 ## 🚀 Next steps / Nächste Schritte / Следующие шаги  
 
-1. **Proof-of-Work (Mining)**  
-   - EN: Implement `mineBlock(difficulty)`, require hash with leading zeros, measure effort  
-   - DE: `mineBlock(difficulty)` implementieren, Hash mit führenden Nullen, Aufwand messen  
-   - RU: Реализовать `mineBlock(difficulty)`, находить хэш с начальными нулями, измерить сложность  
+1. **Integrate mempool → mining**  
+   - EN: Mine blocks with real pending transactions (`mempool.takeAll()` + size limit).  
+   - Acceptance: `mineBlock()` includes mempool txs in the block.  
 
-2. **Blockchain extension / Blockchain erweitern / Расширение блокчейна**  
-   - EN: Integrate mining into addBlock, add reward transactions (Coinbase)  
-   - DE: Mining in addBlock integrieren, Reward-Transaktionen (Coinbase) hinzufügen  
-   - RU: Интегрировать майнинг в addBlock, добавить наградные транзакции (Coinbase)  
+2. **Miner reward (Coinbase transaction)**  
+   - EN: Add reward tx at index 0; configurable `blockReward`.  
+   - Acceptance: Each mined block includes reward transaction.  
 
-3. **P2P Network / P2P-Netzwerk / P2P-сеть**  
-   - EN: Simulate multiple nodes, exchange blocks/transactions, resolve conflicts (Longest Chain Rule)  
-   - DE: Mehrere Nodes simulieren, Blöcke/Transaktionen austauschen, Konflikte lösen (Longest Chain Rule)  
-   - RU: Смоделировать несколько узлов, обмен блоками/транзакциями, разрешение конфликтов (Longest Chain Rule)  
+3. **Balances & State validation**  
+   - EN: Track balances, reject overspending before mempool insert.  
+   - Acceptance: Invalid tx (overspend) → rejected.  
 
-4. **Blockchain Explorer / CLI**  
-   - EN: User-friendly console output, later small web frontend  
-   - DE: Übersichtliche Konsolenausgabe, später kleines Web-Frontend  
-   - RU: Удобный вывод в консоли, позже маленький веб-интерфейс  
+4. **Extended tests**  
+   - EN: Assertions for mempool selection, reward, balances (Node assert or Jest).  
 
-5. **Accounts & Smart Contracts (advanced) / Accounts & Smart Contracts (fortgeschritten) / Аккаунты и смарт-контракты (продвинуто)**  
-   - EN: Ethereum-like accounts, Solidity basics, first smart contracts  
-   - DE: Ethereum-ähnliche Accounts, Solidity-Grundlagen, erste Smart Contracts  
-   - RU: Аккаунты по типу Ethereum, основы Solidity, первые смарт-контракты  
+5. **P2P Network**  
+   - EN: Simulate multiple nodes, exchange blocks/txs, resolve conflicts (Longest Chain Rule).  
+
+6. **Blockchain Explorer / CLI**  
+   - EN: User-friendly console logs, later small web frontend.  
+
+7. **Accounts & Smart Contracts (advanced)**  
+   - EN: Ethereum-like accounts, Solidity basics, first smart contracts.  
+
+---
+
+_Last updated: 2025-09-09_  
