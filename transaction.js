@@ -145,3 +145,15 @@ try {                                                        // [RU/EN/DE] По�
     console.log('Mempool reject:', e.message);               // [RU/EN/DE] Причина отказа / Rejection reason / Ablehnungsgrund
 }
 
+// ---------- Exports for tests (CommonJS) ----------
+// EN: Export helpers so tests can import them
+// DE: Exportiere Helfer, damit Tests sie importieren können
+// RU: Экспортируем хелперы, чтобы тесты могли их подключать
+module.exports = {
+  serializeTx,   // EN/DE/RU: deterministic JSON of tx
+  sha256,        // EN/DE/RU: SHA-256 helper
+  signTx,        // EN/DE/RU: sign tx JSON with private key (PEM)
+  verifyTx,      // EN/DE/RU: verify signature with public key (PEM)
+  toAddress,     // EN/DE/RU: derive short address from public key (PEM)
+  addToMempool   // EN/DE/RU: validate & push tx into mempool
+};
