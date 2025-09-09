@@ -1,8 +1,8 @@
 # LICENSE – MIT  
 
-**EN:** This project is published under the MIT License.  
-**DE:** Dieses Projekt wird unter der MIT-Lizenz veröffentlicht.  
-**RU:** Этот проект распространяется по лицензии MIT.  
+> **EN:** This project is published under the MIT License.  
+> **DE:** Dieses Projekt wird unter der MIT-Lizenz veröffentlicht.  
+> **RU:** Этот проект распространяется по лицензии MIT.  
 
 ---
 
