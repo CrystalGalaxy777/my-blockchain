@@ -8,7 +8,9 @@ const crypto = require("crypto");   // EN: Built-in crypto / DE: Eingebaute Kryp
 // EN: Import helpers from our implementation
 // DE: Importe Hilfsfunktionen aus unserer Implementierung
 // RU: Импортируем хелперы из нашей реализации
-const { serializeTx, sha256 } = require("../transaction.js");
+// const { serializeTx, sha256 } = require("../transaction.js");
+const { serializeTx, sha256 } = require("../tx-crypto.js");
+
 
 // ---------- Fixture / Testdaten / Тестовые данные ----------
 const tx = { from: "a", to: "b", amount: 10, nonce: 1 }; // EN: Minimal tx / DE: Minimale Tx / RU: Минимальная транзакция

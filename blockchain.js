@@ -45,6 +45,16 @@ class Blockchain {                        // EN: Chain container / DE: Ketten-Co
     return this.addBlock(block);        // EN: Validate & append / DE: Validieren & anhängen / RU: Проверить и добавить
   }
 
+    // ---------- Mine using mempool ----------                                // EN: Mine from mempool / DE: Aus Mempool minen / RU: Майним из мемпула
+  mineFromMempool(mempool, maxTx = Infinity) {                                 // EN: Pull txs from mempool / DE: Txs aus Mempool holen / RU: Забрать tx из мемпула
+    if (!mempool || typeof mempool.takeAll !== 'function') {                   // EN: Guard against wrong arg / DE: Absicherung / RU: Защита от неверного аргумента
+      throw new Error('mineFromMempool: mempool with takeAll() is required');  // EN/DE/RU
+    }
+    const txs = mempool.takeAll(maxTx);                                        // EN: Drain up to maxTx / DE: Bis maxTx entnehmen / RU: Забрать до maxTx
+    return this.mineBlock(txs);                                                // EN: Reuse existing flow / DE: Vorhandenen Flow nutzen / RU: Повторно используем существующий метод
+  }
+
+
   isValid() {                           // EN: Full chain check / DE: Komplette Kettenprüfung / RU: Полная проверка цепи
     for (let i = 1; i < this.chain.length; i++) { 
       const prev = this.chain[i - 1]; 
