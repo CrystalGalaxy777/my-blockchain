@@ -51,11 +51,13 @@ node test-block.js
 Output example:
 
 ```text
-b0.hash: e3b0c44298fc1c14
-b1.prev==b0.hash? true
+⛏ Mining...
+Hash: 000e8d9...
+Nonce: 2381
+
 ```
 
-### 3. Blockchain
+### 3. Blockchain (linked blocks)
 
 ```bash
 node test-chain.js
@@ -64,8 +66,11 @@ node test-chain.js
 Output example:
 
 ```text
-Chain length: 2
-Blockchain valid? true
+Genesis hash: 0a1b2c...
+⛏ Mining block #1...
+Mined hash: 0007ff9...
+Nonce: 1293
+Chain valid? true
 ```
 ### 3.5. Mine from Mempool (integration demo)
 
