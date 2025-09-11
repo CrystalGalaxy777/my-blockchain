@@ -33,7 +33,7 @@
   "author": "CrystalGalaxy777",
 
   "//license": "Тип лицензии. ISC по умолчанию, можно заменить на MIT",
-  "license": "ISC",
+  "license": "MIT",
 
   "//bugs": "Ссылка на Issues в GitHub",
   "bugs": {
@@ -45,6 +45,6 @@
 
   "//devDependencies": "Зависимости для разработки. @types/node нужны VS Code, чтобы не подчёркивал require",
   "devDependencies": {
-    "@types/node": "^20.11.30"
+    "@types/node": "^24.3.0"
   }
 }

@@ -45,7 +45,7 @@ Mempool size: 1
 ### 2. Blocks
 
 ```bash
-node block.js
+node test-block.js
 ```
 
 Output example:
@@ -58,7 +58,7 @@ b1.prev==b0.hash? true
 ### 3. Blockchain
 
 ```bash
-node blockchain.js
+node test-chain.js
 ```
 
 Output example:
