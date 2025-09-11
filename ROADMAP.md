@@ -33,45 +33,54 @@
    - DE: Mining mit `difficulty` und `nonce`, Block-Hash muss mit N Nullen beginnen  
    - RU: Реализован майнинг с `difficulty` и `nonce`, хэш блока должен начинаться с N нулей  
 
-6. **Test Script / Testskript / Тестовый скрипт (`testBlockchain.js`)**  
-   - EN: End-to-End: Transaction → Mempool → Block → Blockchain  
-   - DE: End-to-End: Transaktion → Mempool → Block → Blockchain  
-   - RU: Полный цикл: Транзакция → Мempool → Блок → Блокчейн  
-   - Includes manipulation test & block tampering check (`isValid() = false`)  
+6. **Integration: mineFromMempool**  
+   - EN: New method `mineFromMempool()` drains txs from mempool and mines block.  
+   - DE: Neue Methode `mineFromMempool()`, die Txs aus Mempool entnimmt und Block mined.  
+   - RU: Добавлен метод `mineFromMempool()`, который забирает транзакции из mempool и майнит блок.  
 
-7. **README & GitHub**  
-   - EN: Documented steps, expected outputs, `.gitignore` without `node_modules/`  
-   - DE: Schritte dokumentiert, erwartete Ausgaben, `.gitignore` ohne `node_modules/`  
-   - RU: Документация шагов, ожидаемый вывод, `.gitignore` без `node_modules/`  
+7. **Tests**  
+   - EN: Smoke tests for block, chain, mempool integration, PoW demo.  
+   - DE: Smoke-Tests für Block, Chain, Mempool-Integration, PoW-Demo.  
+   - RU: Тесты для блока, цепочки, интеграции mempool, демо PoW.  
 
+8. **README & GitHub**  
+   - EN: Documented steps, usage examples, `.gitignore` without `node_modules/`  
+   - DE: Schritte dokumentiert, Beispiele, `.gitignore` ohne `node_modules/`  
+   - RU: Документация шагов, примеры, `.gitignore` без `node_modules/`  
 ---
 
 ## 🚀 Next steps / Nächste Schritte / Следующие шаги  
 
-1. **Integrate mempool → mining**  
-   - EN: Mine blocks with real pending transactions (`mempool.takeAll()` + size limit).  
-   - Acceptance: `mineBlock()` includes mempool txs in the block.  
-
-2. **Miner reward (Coinbase transaction)**  
+1. **Miner reward (Coinbase transaction)**  
    - EN: Add reward tx at index 0; configurable `blockReward`.  
-   - Acceptance: Each mined block includes reward transaction.  
+   - DE: Reward-Transaktion an Index 0 hinzufügen; konfigurierbarer `blockReward`.  
+   - RU: Добавить наградную транзакцию в начале списка; параметр `blockReward`.  
 
-3. **Balances & State validation**  
+2. **Balances & State validation**  
    - EN: Track balances, reject overspending before mempool insert.  
-   - Acceptance: Invalid tx (overspend) → rejected.  
+   - DE: Kontostände einführen; Overspending vor Aufnahme in Mempool ablehnen.  
+   - RU: Ввести учёт балансов; отклонять перерасход до добавления в mempool.  
 
-4. **Extended tests**  
-   - EN: Assertions for mempool selection, reward, balances (Node assert or Jest).  
+3. **Extended tests**  
+   - EN: Assertions for reward, balances, mempool selection (Node assert or Jest).  
+   - DE: Tests für Reward, Kontostände, Mempool-Auswahl.  
+   - RU: Тесты для награды, балансов, выбора транзакций из mempool.  
 
-5. **P2P Network**  
+4. **P2P Network**  
    - EN: Simulate multiple nodes, exchange blocks/txs, resolve conflicts (Longest Chain Rule).  
+   - DE: Mehrere Nodes simulieren, Blöcke/Txs austauschen, Konflikte lösen (Longest Chain Rule).  
+   - RU: Смоделировать несколько узлов, обмен блоками/транзакциями, разрешение конфликтов (Longest Chain Rule).  
 
-6. **Blockchain Explorer / CLI**  
+5. **Blockchain Explorer / CLI**  
    - EN: User-friendly console logs, later small web frontend.  
+   - DE: Übersichtliche Konsolenausgabe, später kleines Web-Frontend.  
+   - RU: Удобный вывод в консоли, позже маленький веб-интерфейс.  
 
-7. **Accounts & Smart Contracts (advanced)**  
+6. **Accounts & Smart Contracts (advanced)**  
    - EN: Ethereum-like accounts, Solidity basics, first smart contracts.  
+   - DE: Ethereum-ähnliche Accounts, Solidity-Grundlagen, erste Smart Contracts.  
+   - RU: Аккаунты по типу Ethereum, основы Solidity, первые смарт-контракты.  
 
 ---
 
-_Last updated: 2025-09-09_  
+_Last updated: 2025-09-11_  

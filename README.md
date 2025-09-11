@@ -54,7 +54,6 @@ Output example:
 ⛏ Mining...
 Hash: 000e8d9...
 Nonce: 2381
-
 ```
 
 ### 3. Blockchain (linked blocks)
