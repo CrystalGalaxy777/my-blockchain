@@ -67,6 +67,29 @@ Output example:
 Chain length: 2
 Blockchain valid? true
 ```
+### 3.5. Mine from Mempool (integration demo)
+
+```bash
+node test-mine-mempool.js
+```
+
+Output example:
+
+```text
+Mempool size before mining: 2
+⛏ Mining from mempool...
+Mined hash: 00e...
+Nonce: 587
+Tx count in block: 2
+Mempool size after mining: 0
+Chain valid? true
+```
+
+Or reuse the same mempool from transaction.js:
+
+```bash
+node mine-from-transaction.js
+```
 
 ### 4. Proof-of-Work Demo
 
@@ -119,11 +142,11 @@ node pow-demo.js --difficulty 4 --logEvery 10000 -t
 
 ## New features (Chapter 4 — Blocks & Blockchain)
 
-* **EN:** Added `Block` class with deterministic header (`index, prevHash, timestamp, txRoot, nonce`) and unique block ID (`hash`).
+* **EN:** Added `Block` class with deterministic header (`index, prevHash, timestamp, txRoot, nonce`) and unique block ID (`hash`). New Blockchain classes with PoW mining and chain validation.
 
-* **DE:** Neue `Block`-Klasse mit deterministischem Header (`index, prevHash, timestamp, txRoot, nonce`) und eindeutiger Block-ID (`hash`).
+* **DE:** Neue `Block`-Klasse mit deterministischem Header (`index, prevHash, timestamp, txRoot, nonce`) und eindeutiger Block-ID (`hash`).Neue Blockchain-Klassen mit PoW-Mining und Kettenvalidierung.
 
-* **RU:** Добавлен класс `Block` с детерминированным заголовком (`index, prevHash, timestamp, txRoot, nonce`) и уникальным ID блока (`hash`).
+* **RU:** Добавлен класс `Block` с детерминированным заголовком (`index, prevHash, timestamp, txRoot, nonce`) и уникальным ID блока (`hash`). Добавлен класс Blockchain с PoW-майнингом и проверкой целостности цепи.
 
 * **EN:** Mini-test in `block.js`: creates Genesis block and Block #1, checks `prevHash` linkage.
 
@@ -136,6 +159,12 @@ node pow-demo.js --difficulty 4 --logEvery 10000 -t
 * **DE:** Neue `Blockchain`-Klasse: verwaltet Blockkette, überprüft Integrität (`isValid`).
 
 * **RU:** Добавлен класс `Blockchain`: управляет цепочкой блоков, проверяет целостность (`isValid`).
+
+* **EN:** Integrated mempool into mining (mineFromMempool).
+
+* **DE:** Mempool ins Mining integriert (mineFromMempool).
+
+* **RU:** Интегрирован mempool в майнинг (mineFromMempool).
 
 ---
 ## License / Lizenz / Лицензия
