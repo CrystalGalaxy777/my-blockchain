@@ -1,26 +1,38 @@
+Here’s a **clean, final** `DIARY.md` you can paste into your repo.
+Style: **narration in English**, **inline tri-lingual comments** in every code line (`// EN: … / DE: … / RU: …`).
+All sections are numbered 1–10 and match your current files.
+
+---
+
+````markdown
 # DIARY.md — my-blockchain (Portfolio Edition)
 
 **Repo:** `my-blockchain`  
-**Date:** 11.09.2025  
-**Goal:** Build a minimal Proof-of-Work blockchain (JS/Node) with transactions, signatures, mempool, blocks, chain validation.
+**Date:** 2025-09-10  
+**Goal:** Build a minimal Proof-of-Work blockchain (Node.js) with transactions, signatures, mempool, blocks, chain validation — step by step, reproducibly.
 
-> This diary is written as a **reproducible build log**. Follow the steps to recreate the project from scratch.  
-> Code comments are **inline** and **tri-lingual**: `// EN: … / DE: … / RU: …`.
+> This diary is a **rebuild log**. If you follow it, you can recreate the project from scratch months later.
+> Code comments are inline and tri-lingual: `// EN: … / DE: … / RU: …`.
 
 ---
 
 ## Table of Contents
 1. [Create the repository](#1-create-the-repository)  
 2. [Utilities: crypto & serialization (`utils.js`)](#2-utilities-crypto--serialization-utilsjs)  
-3. [Transactions, signatures, mempool (`transaction.js` + `tx-crypto.js`)](#3-transactions-signatures-mempool-transactionjs--tx-cryptojs)  
+3. [Transactions, signatures, mempool (`transaction.js`)](#3-transactions-signatures-mempool-transactionjs)  
 4. [Block with PoW mining (`block.js`)](#4-block-with-pow-mining-blockjs)  
 5. [Blockchain container (`blockchain.js`)](#5-blockchain-container-blockchainjs)  
-6. [Mempool integration (`mineFromMempool`)](#6-mempool-integration-minefrommempool)  
-7. [Smoke tests (`test-block.js`, `test-chain.js`)](#7-smoke-tests-test-blockjs-test-chainjs)  
-8. [Proof-of-Work demo (`pow-demo.js`)](#8-proof-of-work-demo-pow-demojs)  
-9. [Commits & Project hygiene](#9-commits--project-hygiene)  
-10. [Next steps](#10-next-steps)  
-11. [Changelog](#11-changelog)  
+6. [Refactor: tests & package scripts](#6-refactor-tests--package-scripts)  
+7. [Integrate mempool → mining (`mineFromMempool`)](#7-integrate-mempool--mining-minefrommempool)  
+8. [Proof-of-Work demo CLI (`pow-demo.js`)](#8-proof-of-work-demo-cli-pow-demojs)  
+9. [End-to-end demo: shared mempool](#9-end-to-end-demo-shared-mempool)  
+10. [Basic unit tests (Node assert)](#10-basic-unit-tests-node-assert)
+11. [Commits & Project hygiene](#11-commits--project-hygiene)  
+12. [Next steps](#12-next-steps)  
+13. [Changelog](#13-changelog)  
+14. [PR-plan](#14-pr-plan) 
+
+
 ---
 
 ## 1) Create the repository
@@ -28,62 +40,61 @@
 **Intent:** keep repo clean and professional from the start; avoid “setup” noise.
 
 ```bash
-mkdir my-blockchain && cd my-blockchain
-git init
-echo "# My Blockchain Learning (JS)" > README.md
-git add README.md && git commit -m "chore: init repository with README"
-```
+mkdir my-blockchain && cd my-blockchain                   # EN: create folder / DE: Ordner anlegen / RU: создать папку
+git init                                                  # EN: init repo / DE: Repo initialisieren / RU: инициализация репо
+echo "# My Blockchain Learning (JS)" > README.md          # EN: seed README / DE: README anlegen / RU: создать README
+node -v && npm -v                                         # EN: verify toolchain / DE: Toolchain prüfen / RU: проверить версии
+npm init -y                                               # EN: package.json / DE: package.json / RU: package.json
+git add . && git commit -m "chore: init repository"
+````
 
 Optional: add a remote and push.
-
-Clean init with `README.md`, `package.json`, `.gitignore`.
 
 ---
 
 ## 2) Utilities: crypto & serialization (`utils.js`)
 
-**Intent:** single source of truth for hashing and deterministic JSON, reused by tx/block/chain.
+**Intent:** one place for hashing + deterministic JSON, reused by tx/block/chain.
 
 Create `utils.js`:
 
 ```js
-// utils.js — Shared helpers (crypto & serialization) // EN: Shared helpers / DE: Gemeinsame Helfer / RU: Общие утилиты
+// utils.js — Shared helpers (crypto & serialization)           // EN: Shared helpers / DE: Gemeinsame Helfer / RU: Общие утилиты
+'use strict';                                                   // EN: Strict mode / DE: Strict Mode / RU: Строгий режим
+const crypto = require('crypto');                               // EN: Node crypto / DE: Node-Krypto / RU: Модуль crypto
 
-const crypto = require('crypto');                       // EN: Import Node.js crypto / DE: Node.js-Krypto importieren / RU: Подключаем модуль crypto
-
-function sha256Hex(data) {                              // EN: SHA-256 wrapper / DE: SHA-256-Hülle / RU: Обёртка для SHA-256
-  return crypto.createHash('sha256').update(data).digest('hex'); // EN: Hash to hex / DE: Hash als Hex / RU: Хэш в hex
+function sha256Hex(data) {                                      // EN: SHA-256 to hex / DE: SHA-256 nach Hex / RU: SHA-256 в hex
+  return crypto.createHash('sha256').update(data).digest('hex');// EN: Pipe & digest / DE: Hash berechnen / RU: Вычислить хэш
 }
 
-function serializeTx(tx) {                              // EN: Deterministic tx serialization / DE: Deterministische Tx-Serialisierung / RU: Детерминированная сериализация транзакции
-  const ordered = { from: tx.from, to: tx.to, amount: tx.amount, nonce: tx.nonce }; // EN: Canonical field order / DE: Kanonische Feldreihenfolge / RU: Каноничный порядок полей
-  return JSON.stringify(ordered);                       // EN: Stable JSON / DE: Stabiles JSON / RU: Стабильный JSON
-}
-
-function serializeHeader(header) {                      // EN: Deterministic block header serialization / DE: Deterministische Header-Serialisierung / RU: Детерминированная сериализация заголовка
-  const ordered = {                                     // EN: Build canonical header object / DE: Kanonisches Header-Objekt / RU: Каноничный объект заголовка
-    index:        header.index,                         // EN: Block height / DE: Blockhöhe / RU: Высота блока
-    previousHash: header.previousHash,                  // EN: Parent hash / DE: Vorgänger-Hash / RU: Хэш предыдущего
-    timestamp:    header.timestamp,                     // EN: Creation time (ms) / DE: Erstellzeit (ms) / RU: Время создания (мс)
-    txRoot:       header.txRoot,                        // EN: Transactions root / DE: Transaktions-Root / RU: Корень транзакций
-    difficulty:   header.difficulty,                    // EN: PoW difficulty / DE: PoW-Schwierigkeit / RU: Сложность PoW
-    nonce:        header.nonce                          // EN: Changing counter / DE: Zählwert (Nonce) / RU: Счётчик (nonce)
+function serializeTx(tx) {                                      // EN: Canonical tx JSON / DE: Kanonisches Tx-JSON / RU: Каноничный JSON
+  const ordered = {                                             // EN: Fixed order / DE: Feste Reihenfolge / RU: Фиксированный порядок
+    from: tx.from, to: tx.to, amount: tx.amount, nonce: tx.nonce
   };
-  return JSON.stringify(ordered);                       // EN: Stable JSON / DE: Stabiles JSON / RU: Стабильный JSON
+  return JSON.stringify(ordered);                               // EN: Stable string / DE: Stabile Zeichenfolge / RU: Стабильная строка
 }
 
-function simpleTxRoot(transactions) {                   // EN: Simple deterministic tx root (not Merkle) / DE: Einfacher deterministischer Tx-Root / RU: Простой детерминированный корень (не Меркле)
-  const normalized = transactions.map(tx => JSON.parse(serializeTx(tx))); // EN: Normalize each tx / DE: Jede Tx normalisieren / RU: Нормализуем каждую транзакцию
-  const json = JSON.stringify(normalized);              // EN: Canonical list JSON / DE: Kanonische JSON-Liste / RU: Канонический JSON списка
-  return sha256Hex(json);                               // EN: Hash as root / DE: Hash als Root / RU: Хэш как корень
+function serializeHeader(h) {                                   // EN: Canonical block header / DE: Kanonischer Header / RU: Каноничный заголовок
+  const ordered = {                                             // EN: Fields in order / DE: Felder geordnet / RU: Порядок полей
+    index: h.index, previousHash: h.previousHash, timestamp: h.timestamp,
+    txRoot: h.txRoot, difficulty: h.difficulty, nonce: h.nonce
+  };
+  return JSON.stringify(ordered);                               // EN: Stable string / DE: Stabil / RU: Стабильно
 }
 
-module.exports = { sha256Hex, serializeTx, serializeHeader, simpleTxRoot }; // EN: Export helpers / DE: Helfer exportieren / RU: Экспорт утилит
+function simpleTxRoot(transactions) {                           // EN: Simple tx root (not Merkle) / DE: Einfacher Tx-Root / RU: Простой корень
+  const normalized = transactions.map(t => JSON.parse(serializeTx(t)));
+  const listJson = JSON.stringify(normalized);
+  return sha256Hex(listJson);                                   // EN: Hash of list / DE: Listen-Hash / RU: Хэш списка
+}
 
+module.exports = { sha256Hex, serializeTx, serializeHeader, simpleTxRoot }; // EN: Exports / DE: Exporte / RU: Экспорт
 ```
 
+Commit:
+
 ```bash
-git add utils.js && git commit -m "feat(utils): add sha256Hex/serializeTx/serializeHeader/simpleTxRoot"
+git add utils.js && git commit -m "feat(utils): sha256Hex/serializeTx/serializeHeader/simpleTxRoot"
 ```
 
 ---
@@ -95,159 +106,108 @@ git add utils.js && git commit -m "feat(utils): add sha256Hex/serializeTx/serial
 Create `transaction.js`:
 
 ```js
-// transaction.js — Keys, address, tx, sign/verify, mempool            // EN: Demo script / DE: Demo-Skript / RU: Учебный скрипт
+// transaction.js — Keys → address → tx → sign/verify → mempool        // EN / DE / RU
+'use strict';                                                          // EN: Strict mode / DE / RU
+const crypto = require('crypto');                                      // EN: Node crypto / DE / RU
+const { serializeTx, sha256Hex } = require('./utils');                 // EN: Helpers / DE / RU
 
-const crypto = require('crypto');                                      // EN: Node crypto module / DE: Node-Krypto-Modul / RU: Модуль crypto
-const { serializeTx, sha256Hex } = require('./utils');                 // EN: Reuse helpers from utils / DE: Helfer aus utils nutzen / RU: Утилиты из utils
+// --- Keys & address ---------------------------------------------------------
+const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', {   // EN: ECDSA pair / DE / RU
+  namedCurve: 'secp256k1',                                             // EN: Curve / DE / RU
+  publicKeyEncoding:  { type: 'spki',  format: 'pem' },                // EN: Pubkey PEM / DE / RU
+  privateKeyEncoding: { type: 'pkcs8', format: 'pem' }                 // EN: Privkey PEM / DE / RU
+});
 
-// --- Keys & Address ---------------------------------------------------------
-const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', {   // EN: Generate ECDSA keypair / DE: ECDSA-Schlüsselpaar erzeugen / RU: Сгенерировать пару ключей ECDSA
-  namedCurve: 'secp256k1',                                             // EN: Bitcoin/Ethereum curve / DE: Bitcoin/Ethereum-Kurve / RU: Кривая Bitcoin/Ethereum
-  publicKeyEncoding:  { type: 'spki',  format: 'pem' },                // EN: Public key format / DE: Format öffentl. Schlüssel / RU: Формат публичного ключа
-  privateKeyEncoding: { type: 'pkcs8', format: 'pem' }                 // EN: Private key format / DE: Format priv. Schlüssel / RU: Формат приватного ключа
-});                                                                     // EN: End options / DE: Ende Optionen / RU: Конец опций
+function toAddress(publicKeyPem) {                                     // EN: Short address / DE / RU
+  const h = sha256Hex(publicKeyPem);                                   // EN: Hash pubkey / DE / RU
+  return '0x' + h.slice(0, 40);                                        // EN: First 20 bytes / DE / RU
+}
 
-function toAddress(publicKeyPem) {                                      // EN: Derive address from pubkey / DE: Adresse aus Pubkey ableiten / RU: Получить адрес из pubkey
-  const hash = sha256Hex(publicKeyPem);                                 // EN: SHA-256(pubkey PEM) / DE: SHA-256(pubkey PEM) / RU: SHA-256(public key PEM)
-  return '0x' + hash.slice(0, 40);                                      // EN: First 20 bytes (hex) / DE: Erste 20 Bytes (hex) / RU: Первые 20 байт (hex)
-}                                                                       // EN: End toAddress / DE: Ende toAddress / RU: Конец toAddress
+const address = toAddress(publicKey);                                  // EN: Sender address / DE / RU
 
-const address = toAddress(publicKey);                                   // EN: Sender address / DE: Absenderadresse / RU: Адрес отправителя
-
-// --- Build & hash tx --------------------------------------------------------
-const tx = {                                                            // EN: Transaction object / DE: Transaktionsobjekt / RU: Объект транзакции
-  from:   address,                                                      // EN: Sender / DE: Absender / RU: Отправитель
-  to:     '0x96a23e4cd1fdea96c571cadfe6b5318abcee84cc',                 // EN: Recipient / DE: Empfänger / RU: Получатель
-  amount: 100,                                                          // EN: Amount / DE: Betrag / RU: Сумма
-  nonce:  1                                                             // EN: Anti-replay counter / DE: Zähler gegen Wiederholung / RU: Счётчик против повтора
-};                                                                      // EN: End tx / DE: Ende Tx / RU: Конец tx
-
-const txJson = serializeTx(tx);                                         // EN: Canonical JSON for signing / DE: Kanonisches JSON zum Signieren / RU: Каноничный JSON для подписи
-const txHash = sha256Hex(txJson);                                       // EN: Transaction hash (fingerprint) / DE: Transaktionshash / RU: Хэш транзакции
+// --- Build tx ---------------------------------------------------------------
+const tx = { from: address, to: '0x96a23e4cd1fdea96c571cadfe6b5318abcee84cc', amount: 100, nonce: 1 };
+const txJson = serializeTx(tx);                                        // EN: Canonical JSON / DE / RU
+const txHash = sha256Hex(txJson);                                      // EN: Fingerprint / DE / RU
 
 // --- Sign & verify ----------------------------------------------------------
-function signTx(txJson, privateKeyPem) {                                // EN: Make signature / DE: Signatur erstellen / RU: Создать подпись
-  const signer = crypto.createSign('SHA256');                           // EN: Signer with SHA-256 / DE: Signierer mit SHA-256 / RU: Подписант SHA-256
-  signer.update(txJson); signer.end();                                  // EN: Feed data / DE: Daten einspeisen / RU: Передать данные
-  return signer.sign(privateKeyPem, 'hex');                             // EN: Signature (hex) / DE: Signatur (hex) / RU: Подпись (hex)
-}                                                                       // EN: End signTx / DE: Ende signTx / RU: Конец signTx
+function signTx(json, privPem) { const s = crypto.createSign('SHA256'); s.update(json); s.end(); return s.sign(privPem,'hex'); }
+function verifyTx(json, sigHex, pubPem) { const v = crypto.createVerify('SHA256'); v.update(json); v.end(); return v.verify(pubPem,sigHex,'hex'); }
 
-function verifyTx(txJson, signatureHex, publicKeyPem) {                 // EN: Verify signature / DE: Signatur prüfen / RU: Проверить подпись
-  const v = crypto.createVerify('SHA256');                              // EN: Verifier with SHA-256 / DE: Prüfer mit SHA-256 / RU: Проверяющий SHA-256
-  v.update(txJson); v.end();                                            // EN: Feed data / DE: Daten einspeisen / RU: Передать данные
-  return v.verify(publicKeyPem, signatureHex, 'hex');                   // EN: true if valid / DE: true wenn gültig / RU: true если корректно
-}                                                                       // EN: End verifyTx / DE: Ende verifyTx / RU: Конец verifyTx
+const signature = signTx(txJson, privateKey);                          // EN: Signature / DE / RU
+console.log('Address:', address);                                      // EN: Log / DE / RU
+console.log('TX JSON:', txJson);                                       // EN: Log / DE / RU
+console.log('TX Hash:', txHash);                                       // EN: Log / DE / RU
+console.log('Valid signature?', verifyTx(txJson, signature, publicKey));// EN: true / DE: true / RU: true
 
-const signature = signTx(txJson, privateKey);                           // EN: Produce signature over tx / DE: Signatur über Tx erzeugen / RU: Подписать транзакцию
+// --- Tamper test ------------------------------------------------------------
+const tampered = { ...tx, amount: 9999 };                              // EN: Modify / DE / RU
+console.log('Valid after tamper?', verifyTx(serializeTx(tampered), signature, publicKey)); // EN: false / DE / RU
 
-// --- Mempool with minimal checks -------------------------------------------
-const mempool = [];                                                     // EN: Pending txs / DE: Ausstehende Txs / RU: Неподтверждённые транзакции
+// --- Minimal mempool with validator ----------------------------------------
+const mempool = [];                                                     // EN: Pending txs / DE / RU
+function addToMempool(txObj, sigHex, pubPem) {                          // EN: Validate & add / DE / RU
+  const canon = serializeTx(txObj);                                     // EN: Canonical / DE / RU
+  if (!verifyTx(canon, sigHex, pubPem)) throw new Error('Invalid signature');
+  if (txObj.from !== toAddress(pubPem)) throw new Error('From≠pubkey address');
+  const dup = mempool.some(e => e.tx.from === txObj.from && e.tx.nonce === txObj.nonce);
+  if (dup) throw new Error('Duplicate (from, nonce) in mempool');
+  mempool.push({ tx: txObj, signature: sigHex, pubKey: pubPem });
+}
 
-function addToMempool(txObj, sigHex, pubKeyPem) {                       // EN: Validate & add / DE: Validieren & hinzufügen / RU: Проверить и добавить
-  const canon = serializeTx(txObj);                                     // EN: Canonical form / DE: Kanonische Form / RU: Каноничный вид
-  if (!verifyTx(canon, sigHex, pubKeyPem))                              // EN: Bad signature? / DE: Schlechte Signatur? / RU: Подпись неверна?
-    throw new Error('Invalid signature');                               // EN: Reject / DE: Ablehnen / RU: Отклонить
-    
-  if (txObj.from !== toAddress(pubKeyPem))                              // EN: Address must match pubkey / DE: Adresse muss zum Pubkey passen / RU: Адрес должен соответствовать pubkey
-    throw new Error('From address does not match public key');          // EN: Reject / DE: Ablehnen / RU: Отклонить
+try { addToMempool(tx, signature, publicKey); console.log('Mempool size:', mempool.length); }
+catch (e) { console.log('Mempool reject:', e.message); }
 
-  const dup = mempool.some(e => e.tx.from === txObj.from && e.tx.nonce === txObj.nonce); // EN: Duplicate (from,nonce)? / DE: Duplikat (from,nonce)? / RU: Дубликат (from,nonce)?
-  if (dup)                                                              // EN: If duplicate / DE: Falls Duplikat / RU: Если дубликат
-    throw new Error('Duplicate (from, nonce) in mempool');              // EN: Reject / DE: Ablehnen / RU: Отклонить
-  mempool.push({ tx: txObj, signature: sigHex });                       // EN: Accept into mempool / DE: In Mempool aufnehmen / RU: Добавить в mempool
-}                                                                       // EN: End addToMempool / DE: Ende addToMempool / RU: Конец addToMempool
-
-// --- Demo output ------------------------------------------------------------
-console.log('Address:', address);                                       // EN: Sender address / DE: Absenderadresse / RU: Адрес отправителя
-console.log('TX JSON:', txJson);                                        // EN: Canonical tx JSON / DE: Kanonisches Tx-JSON / RU: Каноничный JSON транзакции
-console.log('TX Hash:', txHash);                                        // EN: Hash of tx JSON / DE: Hash des Tx-JSON / RU: Хэш JSON транзакции
-console.log('Signature valid?', verifyTx(txJson, signature, publicKey)); // EN: Expect true / DE: Erwartet true / RU: Ожидаем true
-console.log('Tamper test:',                                             // EN: Re-verify with modified amount / DE: Prüfen mit geändertem Betrag / RU: Проверка с изменённой суммой
-  verifyTx(JSON.stringify({ ...tx, amount: 9999, nonce: tx.nonce }),    // EN: Mutated tx / DE: Veränderte Tx / RU: Мутированная tx
-  signature, publicKey));                                               // EN: Use old signature → false / DE: Alte Signatur → false / RU: Старая подпись → false
-try {                                                                   // EN: Try to add to mempool / DE: In Mempool einfügen versuchen / RU: Пытаемся добавить в mempool
-  addToMempool(tx, signature, publicKey);                               // EN: Validate & push / DE: Validieren & push / RU: Проверить и добавить
-  console.log('Mempool size:', mempool.length);                         // EN: Should be 1 / DE: Sollte 1 sein / RU: Должно быть 1
-} catch (e) {                                                           // EN: On error / DE: Bei Fehler / RU: В случае ошибки
-  console.log('Mempool reject:', e.message);                            // EN: Print reason / DE: Grund ausgeben / RU: Вывести причину
-}                                                                       // EN: End try-catch / DE: Ende Try-Catch / RU: Конец try-catch
-
-
+module.exports = { serializeTx, sha256Hex, signTx, verifyTx, toAddress, mempool }; // EN: Exports / DE / RU
 ```
 
+Commit:
+
 ```bash
-git add transaction.js && git commit -m "feat(tx): signing/verification and minimal mempool"
+git add transaction.js && git commit -m "feat(tx): signing/verification + minimal mempool"
 ```
 
 ---
 
 ## 4) Block with PoW mining (`block.js`)
 
-**Intent:** block header includes `difficulty` & `nonce`; PoW is satisfied when `hash` starts with N zeros.
+**Intent:** header includes `difficulty` & `nonce`; PoW satisfied when `hash` has N leading zeros.
 
 Create `block.js`:
 
 ```js
-// block.js — Block with PoW mining via utils      // EN: Block + mining / DE: Block + Mining / RU: Блок + майнинг
+// block.js — Block + PoW mining with utils                                // EN / DE / RU
+'use strict';
+const { sha256Hex, serializeHeader, simpleTxRoot } = require('./utils');  // EN: Helpers / DE / RU
 
-const { sha256Hex, serializeHeader, simpleTxRoot } = require('./utils'); // EN: Reuse utils / DE: Utils wiederverwenden / RU: Переиспользуем утилиты
-
-class Block {                                        // EN: Block class / DE: Block-Klasse / RU: Класс блока
-  constructor({ index, previousHash, timestamp, transactions, difficulty = 2, nonce = 0 }) { // EN: Init / DE: Init / RU: Инициализация
-    this.index        = index;                       // EN: Height / DE: Höhe / RU: Высота
-    this.previousHash = previousHash;                // EN: Parent hash / DE: Vorgänger-Hash / RU: Хэш предыдущего
-    this.timestamp    = timestamp;                   // EN: Unix ms / DE: Unix ms / RU: Unix мс
-    this.transactions = transactions;                // EN: Payload / DE: Nutzlast / RU: Полезная нагрузка
-    this.txRoot       = simpleTxRoot(transactions);  // EN: Deterministic tx root / DE: Deterministischer Tx-Root / RU: Детерминированный корень
-    this.difficulty   = difficulty;                  // EN: PoW difficulty / DE: PoW-Schwierigkeit / RU: Сложность PoW
-    this.nonce        = nonce;                       // EN: Changes while mining / DE: Ändert sich beim Mining / RU: Меняется при майнинге
-    this.hash         = this.computeHash();          // EN: Initial header hash / DE: Initialer Header-Hash / RU: Начальный хэш заголовка
+class Block {                                                             // EN: Block class / DE / RU
+  constructor({ index, previousHash, timestamp, transactions, difficulty = 2, nonce = 0 }) {
+    this.index = index;                                                   // EN: Height / DE / RU
+    this.previousHash = previousHash;                                     // EN: Parent hash / DE / RU
+    this.timestamp = timestamp;                                           // EN: ms / DE / RU
+    this.transactions = transactions;                                     // EN: Payload / DE / RU
+    this.txRoot = simpleTxRoot(transactions);                             // EN: Deterministic root / DE / RU
+    this.difficulty = difficulty;                                         // EN: Target zeros / DE / RU
+    this.nonce = nonce;                                                   // EN: Counter / DE / RU
+    this.hash = this.computeHash();                                       // EN: Initial header hash / DE / RU
   }
-
-  header() {                                         // EN: Build header object / DE: Header-Objekt bauen / RU: Собрать объект заголовка
-    return {
-      index:        this.index,                      // EN: Height / DE: Höhe / RU: Высота
-      previousHash: this.previousHash,               // EN: Link / DE: Verknüpfung / RU: Связь
-      timestamp:    this.timestamp,                  // EN: Time / DE: Zeit / RU: Время
-      txRoot:       this.txRoot,                     // EN: Tx root / DE: Tx-Root / RU: Корень транзакций
-      difficulty:   this.difficulty,                 // EN: Difficulty / DE: Schwierigkeit / RU: Сложность
-      nonce:        this.nonce                       // EN: Nonce / DE: Nonce / RU: Нонс
-    };
-  }
-
-  computeHash() {                                    // EN: SHA-256 over serialized header / DE: SHA-256 über serialisierten Header / RU: SHA-256 по заголовку
-    const data = serializeHeader(this.header());     // EN: Deterministic bytes / DE: Deterministische Bytes / RU: Детерминированные байты
-    return sha256Hex(data);                          // EN: Hex hash / DE: Hex-Hash / RU: Hex-хэш
-  }
-
-  recomputeHash() {                                  // EN: Recompute after nonce changes / DE: Neu berechnen / RU: Пересчёт после изменения nonce
-    this.hash = this.computeHash();                  // EN: Update cached hash / DE: Cache-Hash aktualisieren / RU: Обновляем хэш
-    return this.hash;                                // EN: Return new hash / DE: Neuen Hash zurückgeben / RU: Возвращаем новый хэш
-  }
-
-  meetsDifficulty() {                                // EN: Check leading-zero target / DE: Führende Nullen / RU: Префикс нулей
-    const prefix = '0'.repeat(this.difficulty);      // EN: Target prefix / DE: Zielpräfix / RU: Целевой префикс
-    return this.hash.startsWith(prefix);             // EN: Satisfied? / DE: Erfüllt? / RU: Выполнено?
-  }
-
-  mine(maxIterations = 1e7) {                        // EN: Brute-force nonce / DE: Nonce bruteforcen / RU: Перебор nonce
-    const prefix = '0'.repeat(this.difficulty);      // EN: Target / DE: Ziel / RU: Цель
-    let it = 0;                                      // EN: Iterations / DE: Iterationen / RU: Итерации
-    while (!this.hash.startsWith(prefix)) {          // EN: Loop until target / DE: Schleife bis Ziel / RU: Крутим до цели
-      this.nonce++;                                  // EN: Change nonce / DE: Nonce erhöhen / RU: Увеличиваем nonce
-      this.recomputeHash();                          // EN: Refresh hash / DE: Hash neu berechnen / RU: Пересчитываем хэш
-      if (++it >= maxIterations) throw new Error('PoW: max iterations reached'); // EN/DE/RU: Стоп по лимиту
-    }
-    return this;                                     // EN: Return mined block / DE: Geminten Block zurückgeben / RU: Вернуть добытый блок
+  header() { return { index: this.index, previousHash: this.previousHash, timestamp: this.timestamp, txRoot: this.txRoot, difficulty: this.difficulty, nonce: this.nonce }; }
+  computeHash() { return sha256Hex(serializeHeader(this.header())); }     // EN: Hash header / DE / RU
+  recomputeHash() { this.hash = this.computeHash(); return this.hash; }   // EN: Refresh / DE / RU
+  meetsDifficulty() { const p = '0'.repeat(this.difficulty); return this.hash.startsWith(p); } // EN: Check / DE / RU
+  mine(maxIterations = 1e7) {                                             // EN: Brute-force / DE / RU
+    const p = '0'.repeat(this.difficulty); let it = 0;
+    while (!this.hash.startsWith(p)) { this.nonce++; this.recomputeHash(); if (++it >= maxIterations) throw new Error('PoW: max iterations reached'); }
+    return this;                                                          // EN: Done / DE / RU
   }
 }
-
-module.exports = Block;                              // EN: Export class / DE: Klasse exportieren / RU: Экспорт класса
-
+module.exports = Block;                                                   // EN: Export / DE / RU
 ```
 
+Commit:
+
 ```bash
-git add block.js && git commit -m "feat(block): PoW block (difficulty/nonce) and mining"
+git add block.js && git commit -m "feat(block): PoW block (difficulty/nonce) + mining()"
 ```
 
 ---
@@ -259,193 +219,259 @@ git add block.js && git commit -m "feat(block): PoW block (difficulty/nonce) and
 Create `blockchain.js`:
 
 ```js
-// blockchain.js — Simple chain with PoW mining    // EN: Simple PoW chain / DE: Einfache PoW-Chain / RU: Простая цепь с PoW
+// blockchain.js — Simple chain with PoW mining                               // EN / DE / RU
+'use strict';
+const Block = require('./block');                                           // EN: Use Block / DE / RU
 
-const Block = require('./block');                    // EN: Use Block class / DE: Block-Klasse nutzen / RU: Используем класс Block
-
-class Blockchain {                                   // EN: Chain container / DE: Ketten-Container / RU: Контейнер цепочки
-  constructor({ difficulty = 3 } = {}) {             // EN: Global difficulty / DE: Globale Difficulty / RU: Глобальная сложность
-    this.difficulty = difficulty;                    // EN: Store difficulty / DE: Difficulty speichern / RU: Сохраняем сложность
-    this.chain      = [this.createGenesisBlock()];   // EN: Start with genesis / DE: Start mit Genesis / RU: Начинаем с генезиса
+class Blockchain {                                                          // EN: Chain / DE / RU
+  constructor({ difficulty = 3 } = {}) { this.difficulty = difficulty; this.chain = [this.createGenesisBlock()]; }
+  createGenesisBlock() {                                                    // EN: Genesis / DE / RU
+    const b = new Block({ index: 0, previousHash: '0'.repeat(64), timestamp: Date.now(), transactions: [], difficulty: this.difficulty, nonce: 0 });
+    return b;
   }
+  latest() { return this.chain[this.chain.length - 1]; }                    // EN: Tip / DE / RU
 
-  createGenesisBlock() {                             // EN: Build genesis block / DE: Genesis-Block erzeugen / RU: Создать генезис-блок
-    const b = new Block({
-      index:        0,                               // EN: Height 0 / DE: Höhe 0 / RU: Высота 0
-      previousHash: '0'.repeat(64),                  // EN: Null prev-hash / DE: Null-Vorhash / RU: Нулевой предыдущий хэш
-      timestamp:    Date.now(),                      // EN: Now / DE: Jetzt / RU: Сейчас
-      transactions: [],                              // EN: Empty payload / DE: Leere Nutzlast / RU: Пустая нагрузка
-      difficulty:   this.difficulty,                 // EN: Same difficulty / DE: Gleiche Difficulty / RU: Та же сложность
-      nonce:        0                                // EN: No mining needed / DE: Kein Mining nötig / RU: Майнинг не нужен
-    });
-    return b;                                        // EN: Return genesis / DE: Genesis zurückgeben / RU: Вернуть генезис
-  }
-
-  latest() { return this.chain[this.chain.length - 1]; } // EN: Tail block / DE: Letzter Block / RU: Последний блок
-
-  addBlock(block) {                                  // EN: Validate & append / DE: Validieren & anhängen / RU: Проверить и добавить
+  addBlock(block) {                                                         // EN: Validate & append / DE / RU
     const tip = this.latest();
-    if (block.index        !== tip.index + 1) throw new Error('Bad index');     // EN: Height check / DE: Höhen-Check / RU: Проверка высоты
-    if (block.previousHash !== tip.hash)      throw new Error('Bad prevHash');  // EN: Link check / DE: Verknüpfungs-Check / RU: Проверка связи
-    if (!block.meetsDifficulty())            throw new Error('Not mined');      // EN: PoW must hold / DE: PoW muss gelten / RU: Должен соблюдаться PoW
-    if (block.computeHash() !== block.hash)  throw new Error('Hash mismatch');  // EN: Integrity / DE: Integrität / RU: Целостность
-    this.chain.push(block);                         // EN: Append / DE: Anhängen / RU: Добавляем
-    return block;                                   // EN: Return appended / DE: Zurückgeben / RU: Вернуть добавленный
+    if (block.index !== tip.index + 1) throw new Error('Bad index');
+    if (block.previousHash !== tip.hash) throw new Error('Bad prevHash');
+    if (!block.meetsDifficulty()) throw new Error('Not mined');
+    if (block.computeHash() !== block.hash) throw new Error('Hash mismatch');
+    this.chain.push(block);
+    return block;
   }
 
-  mineBlock(transactions = []) {                    // EN: Build→mine→add / DE: Bauen→minen→hinzufügen / RU: Создать→майнить→добавить
-    const block = new Block({
-      index:        this.latest().index + 1,        // EN: Next height / DE: Nächste Höhe / RU: Следующая высота
-      previousHash: this.latest().hash,             // EN: Link to tip / DE: Verknüpfung zur Spitze / RU: Связь с вершиной
-      timestamp:    Date.now(),                     // EN: Now / DE: Jetzt / RU: Сейчас
-      transactions,                                 // EN: Payload / DE: Nutzlast / RU: Полезная нагрузка
-      difficulty:   this.difficulty,                // EN: Target / DE: Ziel / RU: Цель
-      nonce:        0                               // EN: Start nonce / DE: Start-Nonce / RU: Начальный nonce
-    });
-    block.mine();                                   // EN: PoW loop / DE: PoW-Schleife / RU: Цикл PoW
-    return this.addBlock(block);                    // EN: Validate & append / DE: Validieren & anhängen / RU: Проверить и добавить
+  mineBlock(transactions = []) {                                            // EN: Build→mine→add / DE / RU
+    const b = new Block({ index: this.latest().index + 1, previousHash: this.latest().hash, timestamp: Date.now(), transactions, difficulty: this.difficulty, nonce: 0 });
+    b.mine();
+    return this.addBlock(b);
   }
 
-  isValid() {                                       // EN: Full chain check / DE: Komplette Kettenprüfung / RU: Полная проверка цепи
+  // (Used later in §7)
+  mineFromMempool(mempool, maxTx = Infinity) {                              // EN: Pull from mempool / DE / RU
+    if (!mempool || typeof mempool.takeAll !== 'function') throw new Error('mineFromMempool: mempool.takeAll() required');
+    const txs = mempool.takeAll(maxTx);
+    return this.mineBlock(txs);
+  }
+
+  isValid() {                                                               // EN: Full chain check / DE / RU
     for (let i = 1; i < this.chain.length; i++) {
-      const prev = this.chain[i - 1];
-      const cur  = this.chain[i];
-      if (cur.previousHash !== prev.hash) return false; // EN: Link ok? / DE: Link ok? / RU: Связь ок?
-      if (!cur.meetsDifficulty())   return false;       // EN: PoW ok?  / DE: PoW ok?  / RU: PoW ок?
-      if (cur.computeHash() !== cur.hash) return false; // EN: Hash ok?  / DE: Hash ok?  / RU: Хэш ок?
+      const prev = this.chain[i - 1], cur = this.chain[i];
+      if (cur.previousHash !== prev.hash) return false;
+      if (!cur.meetsDifficulty()) return false;
+      if (cur.computeHash() !== cur.hash) return false;
     }
-return true;                                        // EN: All good / DE: Alles gut / RU: Всё хорошо
+    return true;
   }
 }
-
-module.exports = Blockchain;                        // EN: Export class / DE: Klasse exportieren / RU: Экспорт класса
-
+module.exports = Blockchain;                                                // EN: Export / DE / RU
 ```
 
+Commit:
+
 ```bash
-git add blockchain.js && git commit -m "feat(blockchain): genesis, mineBlock(), isValid()"
+git add blockchain.js && git commit -m "feat(blockchain): genesis, mineBlock(), isValid(), mineFromMempool()"
 ```
 
 ---
 
-## 6) Smoke tests (`test-block.js`, `test-chain.js`)
+## 6) Refactor: tests & package scripts
 
-**Intent:** quick verification without wiring a CLI.
+**Intent:** provide quick commands and a smoke test path.
 
-Create `test-block.js`:
+Update `package.json` scripts (only `scripts` shown here):
 
-```js
-const Block = require('./block');         // EN: Import Block class / DE: Block-Klasse importieren / RU: Импорт класса Block
-
-const b = new Block({                     // EN: Create candidate block / DE: Kandidatenblock erzeugen / RU: Создаём блок-кандидат
-  index:        1,                        // EN: Block height / DE: Blockhöhe / RU: Высота блока
-  previousHash: '00',                     // EN: Placeholder previous hash / DE: Platzhalter-Vorhash / RU: Заглушка предыдущего хэша
-  timestamp:    Date.now(),               // EN: Current time (ms) / DE: Aktuelle Zeit (ms) / RU: Текущее время (мс)
-  transactions: [],                       // EN: No transactions / DE: Keine Transaktionen / RU: Без транзакций
-  difficulty:   3                         // EN: Require hash to start with 000 / DE: Hash muss mit 000 beginnen / RU: Хэш должен начинаться с 000
-});                                       // EN: End constructor args / DE: Ende Konstruktorargumente / RU: Конец аргументов конструктора
-
-console.log('⛏ Mining...');               // EN: Log start of mining / DE: Start des Minings loggen / RU: Лог старта майнинга
-b.mine();                                  // EN: Run PoW to find nonce / DE: PoW ausführen um Nonce zu finden / RU: Запускаем PoW для поиска nonce
-
-console.log('Hash:', b.hash);              // EN: Print mined hash / DE: Geminten Hash ausgeben / RU: Вывести хэш блока
-console.log('Nonce:', b.nonce);            // EN: Print discovered nonce / DE: Gefundene Nonce ausgeben / RU: Вывести найденный nonce
-
-
-```
-
-Create `test-chain.js`:
-
-```js
-const Blockchain = require('./blockchain');            // EN: Import Blockchain class / DE: Blockchain-Klasse importieren / RU: Импорт класса Blockchain
-
-const chain = new Blockchain({ difficulty: 3 });       // EN: Create chain with global difficulty / DE: Kette mit globaler Difficulty / RU: Создаём цепь с общей сложностью
-console.log('Genesis hash:', chain.latest().hash);     // EN: Show genesis hash / DE: Genesis-Hash anzeigen / RU: Показать хэш генезиса
-
-const txs = [                                          // EN: Sample transactions array / DE: Beispiel-Transaktionsliste / RU: Массив тестовых транзакций
-  { from: '0xaaa', to: '0xbbb', amount: 5, nonce: 1 }, // EN: Tx #1 fields / DE: Tx #1 Felder / RU: Поля транзакции №1
-  { from: '0xccc', to: '0xddd', amount: 7, nonce: 1 }  // EN: Tx #2 fields / DE: Tx #2 Felder / RU: Поля транзакции №2
-];                                                     // EN: End array / DE: Ende Array / RU: Конец массива
-
-console.log('⛏ Mining block #1...');                   // EN: Log start of block #1 mining / DE: Start Mining Block #1 loggen / RU: Лог начала майнинга блока №1
-const b1 = chain.mineBlock(txs);                       // EN: Build→mine→append block with txs / DE: Block mit Txs bauen→minen→anhängen / RU: Создать→вымайнить→добавить блок с txs
-
-console.log('Mined hash:', b1.hash);                   // EN: Print block hash / DE: Block-Hash ausgeben / RU: Вывести хэш блока
-console.log('Nonce:', b1.nonce);                       // EN: Print block nonce / DE: Nonce des Blocks ausgeben / RU: Вывести nonce блока
-console.log('Chain valid?', chain.isValid());          // EN: Validate full chain / DE: Gesamte Kette validieren / RU: Проверить валидность цепи
-
-```
-
-```bash
-node test-block.js && node test-chain.js
-git add test-block.js test-chain.js && git commit -m "test: add PoW and chain smoke tests"
-```
-
----
-
-## 7) Integrate mempool → mining (shared mempool, mineFromMempool())
-
-**Intent:** mine real blocks using pending transactions from the mempool.
-We keep validation light (signature + (from, nonce) duplicate check), but wire the flow end-to-end.
-
-**1. Block mining from mempool** — method in `blockchain.js`
-(you already added this; kept here for completeness):
-
-```js
-// blockchain.js — add method to mine using mempool                 // EN / DE / RU
-
-// ---------- Mine using mempool ----------                          // EN: Mine from mempool / DE: Aus Mempool minen / RU: Майним из мемпула
-mineFromMempool(mempool, maxTx = Infinity) {                         // EN: Pull txs / DE: Txs holen / RU: Забираем tx
-  if (!mempool || typeof mempool.takeAll !== 'function')             // EN: Guard / DE: Absicherung / RU: Защита
-    throw new Error('mineFromMempool: mempool with takeAll() is required');
-
-  const txs = mempool.takeAll(maxTx);                                // EN: Drain N / DE: Bis N entnehmen / RU: Забрать до N
-  return this.mineBlock(txs);                                        // EN: Build→mine→append / DE: Bauen→minen→anhängen / RU: Создать→майнить→добавить
+```json
+{
+  "scripts": {
+    "start": "node transaction.js",            // EN/DE/RU: Run tx demo
+    "block": "node test-block.js",             // EN/DE/RU: PoW block demo
+    "chain": "node test-chain.js",             // EN/DE/RU: Chain demo
+    "mine:mempool": "node test-mine-mempool.js", // EN/DE/RU: Mempool mining demo
+    "pow": "node pow-demo.js --difficulty 3 -t",
+    "test": "node test/basic.test.js"
+  }
 }
 ```
-**2. Shared mempool** — we reuse the one created in `transaction.js.`
-It already exposes a Mempool instance validated by txValidator.
 
-**3. Smoke test** — `test-mine-mempool.js` (already in your repo)
-
-```js
-// test-mine-mempool.js                                              // EN: Demo / DE: Demo / RU: Демо
-const Blockchain = require('./blockchain');                          // EN: Chain / DE: Kette / RU: Цепь
-const Mempool    = require('./mempool');                             // EN: Mempool / DE: Mempool / RU: Мемпул
-
-const mempool = new Mempool(null, 1000);                             // EN: no validator (demo) / DE: kein Validator / RU: без валидатора
-mempool.add({ from:'0xaaa', to:'0xbbb', amount:5, nonce:1 });        // EN: tx1 / DE: Tx1 / RU: tx1
-mempool.add({ from:'0xccc', to:'0xddd', amount:7, nonce:1 });        // EN: tx2 / DE: Tx2 / RU: tx2
-
-console.log('Mempool size before mining:', mempool.size());          // EN/DE/RU
-const chain = new Blockchain({ difficulty: 2 });                     // EN: easier PoW / DE: leichter / RU: проще
-console.log('⛏ Mining from mempool...');                             // EN/DE/RU
-const block = chain.mineFromMempool(mempool);                        // EN: key call / DE: Kernaufruf / RU: ключ
-
-console.log('Mined hash:', block.hash);                              // EN/DE/RU
-console.log('Nonce:', block.nonce);                                  // EN/DE/RU
-console.log('Tx count in block:', block.transactions.length);        // EN/DE/RU
-console.log('Mempool size after mining:', mempool.size());           // EN/DE/RU
-console.log('Chain valid?', chain.isValid());                        // EN/DE/RU
-```
+Commit:
 
 ```bash
-node test-mine-mempool.js
+git add package.json && git commit -m "chore(npm): scripts for demos and tests"
 ```
 
-**Expected (example):**
-```yaml
-Mempool size before mining: 2
-⛏ Mining from mempool...
-Mined hash: 00ed3a...e54cc
-Nonce: 527
-Tx count in block: 2
-Mempool size after mining: 0
-Chain valid? true
+---
+
+## 7) Integrate mempool → mining (`mineFromMempool`)
+
+**Intent:** use real pending transactions from a mempool module.
+
+Create `mempool.js`:
+
+```js
+// mempool.js — Minimal pending-transactions pool                         // EN / DE / RU
+'use strict';
+class Mempool {
+  constructor(validator = null, maxSize = 1000) { this._items = []; this._validator = validator; this._maxSize = maxSize; }
+  size() { return this._items.length; }
+  _isDup(tx) { return this._items.some(e => e.tx.from === tx.from && e.tx.nonce === tx.nonce); }
+  add(tx, signature = null, pubKey = null) {
+    if (this.size() >= this._maxSize) throw new Error('Mempool full');
+    if (this._isDup(tx)) throw new Error('Duplicate (from, nonce) in mempool');
+    if (this._validator && !this._validator(tx, signature, pubKey)) throw new Error('Validation failed');
+    this._items.push({ tx, signature, pubKey }); return this.size();
+  }
+  takeAll(maxCount = Infinity) { const cut = this._items.splice(0, Math.min(maxCount, this.size())); return cut.map(e => e.tx); }
+  peekAll() { return this._items.map(e => ({ ...e })); }
+  clear() { this._items.length = 0; }
+}
+module.exports = Mempool;
 ```
 
+Create `test-mine-mempool.js`:
 
-## 7) Commits & Project hygiene
+```js
+// test-mine-mempool.js — demo: mine a block using mempool txs          // EN / DE / RU
+'use strict';
+const Blockchain = require('./blockchain');
+const Mempool = require('./mempool');
+
+const mempool = new Mempool(null, 1000);
+mempool.add({ from: '0xaaa', to: '0xbbb', amount: 5, nonce: 1 });
+mempool.add({ from: '0xccc', to: '0xddd', amount: 7, nonce: 1 });
+
+console.log('Mempool size before mining:', mempool.size());
+const chain = new Blockchain({ difficulty: 2 });
+console.log('⛏ Mining from mempool...');
+const block = chain.mineFromMempool(mempool);
+console.log('Mined hash:', block.hash);
+console.log('Nonce:', block.nonce);
+console.log('Tx count in block:', block.transactions.length);
+console.log('Mempool size after mining:', mempool.size());
+console.log('Chain valid?', chain.isValid());
+```
+
+Commit:
+
+```bash
+git add mempool.js test-mine-mempool.js && git commit -m "feat(mempool): integrate with mining via mineFromMempool()"
+```
+
+---
+
+## 8) Proof-of-Work demo CLI (`pow-demo.js`)
+
+**Intent:** visualize PoW; flags for difficulty, logging, stable timestamp.
+
+Create `pow-demo.js`:
+
+```js
+// pow-demo.js — Visual PoW demo (spinner + flags)                       // EN / DE / RU
+'use strict';
+const Block = require('./block');
+const argv = process.argv.slice(2);
+const hasFlag = (f) => argv.includes(f) || argv.includes(f.replace('--','-'));
+const num = (name, def) => { const i = argv.findIndex(a => a === name || a === name.replace('--','-')); return (i >= 0 && argv[i+1] && !argv[i+1].startsWith('-')) ? Number(argv[i+1]) : def; };
+
+const difficulty = num('--difficulty', 3);
+const maxIter = num('--maxIter', 1e7);
+const logEvery = num('--logEvery', 50000);
+const timestampStable = hasFlag('--timestampStable') || hasFlag('-t');
+const noSpinner = hasFlag('--noSpinner');
+
+console.log(`Params → difficulty=${difficulty}, maxIter=${maxIter}, logEvery=${logEvery}, timestampStable=${timestampStable}`);
+
+const fixedTs = Date.now();
+const b = new Block({ index: 1, previousHash: '00', timestamp: timestampStable ? fixedTs : Date.now(), transactions: [], difficulty, nonce: 0 });
+
+const frames = ['|','/','-','\\']; let spin = 0; let spinner;
+if (!noSpinner) spinner = setInterval(() => process.stdout.write(`\r${frames[spin = (spin+1)%frames.length]} mining… nonce=${b.nonce}`), 80);
+
+let attempts = 0; const prefix = '0'.repeat(difficulty); const t0 = Date.now();
+console.log('\n⛏ Mining…');
+while (!b.hash.startsWith(prefix)) { b.nonce++; b.recomputeHash(); attempts++; if (attempts % logEvery === 0) process.stdout.write(`\r… attempts=${attempts}, nonce=${b.nonce}`); if (attempts >= maxIter) { if (spinner) clearInterval(spinner); console.error(`\n❌ Gave up after ${attempts}`); process.exit(1); } }
+if (spinner) clearInterval(spinner); process.stdout.write('\r');
+
+const t1 = Date.now(); const elapsed = (t1 - t0)/1000; const rate = Math.floor(attempts/(elapsed||1));
+console.log('✅ Mined!'); console.log('Hash:', b.hash); console.log('Nonce:', b.nonce); console.log('Attempts:', attempts);
+console.log(`Time: ${elapsed.toFixed(2)} s`); console.log(`Rate≈ ${rate}/s`); console.log(`Timestamp: ${b.timestamp}  (stable=${timestampStable})`);
+```
+
+Commit:
+
+```bash
+git add pow-demo.js && git commit -m "feat(cli): PoW demo with flags and spinner"
+```
+
+---
+
+## 9) End-to-end demo: shared mempool
+
+**Intent:** mine a block using the same mempool populated in `transaction.js`.
+
+Create `mine-from-mempool.js`:
+
+```js
+// mine-from-mempool.js — use the mempool exported by transaction.js     // EN / DE / RU
+'use strict';
+const Blockchain = require('./blockchain');
+const { mempool } = require('./transaction');       // EN: reuse same mempool / DE / RU
+
+const chain = new Blockchain({ difficulty: 2 });
+console.log('⛏ Mining from mempool...');
+const b1 = chain.mineFromMempool(mempool);
+console.log('Mined block hash:', b1.hash);
+console.log('Nonce:', b1.nonce);
+console.log('Tx count in block:', b1.transactions.length);
+console.log('Chain valid?', chain.isValid());
+```
+
+Commit:
+
+```bash
+git add mine-from-mempool.js && git commit -m "feat(demo): mine block from the same mempool as transaction.js"
+```
+
+---
+
+## 10) Basic unit tests (Node assert)
+
+**Intent:** quick regressions without a framework.
+
+Create `test/basic.test.js`:
+
+```js
+// test/basic.test.js — sanity checks                                      // EN / DE / RU
+'use strict';
+const assert = require('assert');
+const crypto = require('crypto');
+const { serializeTx, sha256Hex } = require('../utils');
+
+const tx = { from: 'a', to: 'b', amount: 10, nonce: 1 };
+const ser = serializeTx(tx);
+assert.strictEqual(ser, JSON.stringify({ from: 'a', to: 'b', amount: 10, nonce: 1 }), 'serializeTx() must be deterministic');
+
+const nodeHash = crypto.createHash('sha256').update('test').digest('hex');
+const helperHash = sha256Hex('test');
+assert.strictEqual(helperHash, nodeHash, 'sha256Hex() must match Node crypto output');
+assert.strictEqual(helperHash.length, 64, 'sha256Hex() must return 64 hex chars');
+
+const txWithExtra = { ...tx, foo: 123, bar: 'x' };
+assert.strictEqual(serializeTx(txWithExtra), ser, 'serializeTx() must ignore extra fields');
+
+console.log('✅ All basic tests passed');
+```
+
+Commit and run:
+
+```bash
+git add test/basic.test.js && git commit -m "test: basic utils & serialization checks"
+npm run test
+```
+
+---
+
+## 11) Commits & Project hygiene
 
 **Commit style:**
 
@@ -469,7 +495,7 @@ Chain valid? true
 
 ---
 
-## 8) Next steps
+## 12) Next steps
 
 1) Integrate real mempool selection into `mineBlock()` (valid txs, size/weight limit)  
    - **Acceptance:** `mineBlock()` pulls pending txs from the mempool (e.g., `mempool.takeAll(limit)`), enforces a `BLOCK_TX_LIMIT` (or byte-size limit), and includes only validator-approved txs. A test proves: mempool size decreases, block contains ≤ limit, chain stays valid.
@@ -491,7 +517,7 @@ Chain valid? true
 
 ---
 
-## 9) Changelog
+## 13) Changelog
 - **28.08.2025 (Day 1):** Created repo `my-blockchain`, added `transaction.js` (keys, tx, signature, mempool).  
 - **30.08.2025 (Day 3):** Added `utils.js` (sha256Hex, serializeTx, serializeHeader, simpleTxRoot).  
 - **01.09.2025 (Day 5):** Added `block.js` (difficulty, PoW mining).  
@@ -504,7 +530,7 @@ Chain valid? true
 
 ---
 
-## 10) PR-plan
+## 14) PR-plan
 
 - [ ] **Refactor:** stabilize `transaction.js` as a demo-only script; keep all crypto helpers in `tx-crypto.js` and `utils.js`.
 - [ ] **Integrate:** add `mineFromMempool()` to `Blockchain` (already implemented) → cover with `test-mine-mempool.js`.
