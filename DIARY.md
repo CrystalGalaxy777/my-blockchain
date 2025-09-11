@@ -1,7 +1,7 @@
 # DIARY.md — my-blockchain (Portfolio Edition)
 
 **Repo:** `my-blockchain`  
-**Date:** 03.09.2025  
+**Date:** 11.09.2025  
 **Goal:** Build a minimal Proof-of-Work blockchain (JS/Node) with transactions, signatures, mempool, blocks, chain validation.
 
 > This diary is written as a **reproducible build log**. Follow the steps to recreate the project from scratch.  
@@ -12,15 +12,15 @@
 ## Table of Contents
 1. [Create the repository](#1-create-the-repository)  
 2. [Utilities: crypto & serialization (`utils.js`)](#2-utilities-crypto--serialization-utilsjs)  
-3. [Transactions, signatures, mempool (`transaction.js`)](#3-transactions-signatures-mempool-transactionjs)  
+3. [Transactions, signatures, mempool (`transaction.js` + `tx-crypto.js`)](#3-transactions-signatures-mempool-transactionjs--tx-cryptojs)  
 4. [Block with PoW mining (`block.js`)](#4-block-with-pow-mining-blockjs)  
 5. [Blockchain container (`blockchain.js`)](#5-blockchain-container-blockchainjs)  
-6. [Smoke tests (`test-block.js`, `test-chain.js`)](#6-smoke-tests-test-blockjs-test-chainjs)  
-7. [Commits & Project hygiene](#7-commits--project-hygiene)  
-8. [Next steps](#8-next-steps)  
-9. [Changelog](#9-changelog)  
-10. [PR-plan](#10-pr-plan)
-
+6. [Mempool integration (`mineFromMempool`)](#6-mempool-integration-minefrommempool)  
+7. [Smoke tests (`test-block.js`, `test-chain.js`)](#7-smoke-tests-test-blockjs-test-chainjs)  
+8. [Proof-of-Work demo (`pow-demo.js`)](#8-proof-of-work-demo-pow-demojs)  
+9. [Commits & Project hygiene](#9-commits--project-hygiene)  
+10. [Next steps](#10-next-steps)  
+11. [Changelog](#11-changelog)  
 ---
 
 ## 1) Create the repository
@@ -35,6 +35,8 @@ git add README.md && git commit -m "chore: init repository with README"
 ```
 
 Optional: add a remote and push.
+
+Clean init with `README.md`, `package.json`, `.gitignore`.
 
 ---
 
@@ -381,6 +383,68 @@ git add test-block.js test-chain.js && git commit -m "test: add PoW and chain sm
 
 ---
 
+## 7) Integrate mempool → mining (shared mempool, mineFromMempool())
+
+**Intent:** mine real blocks using pending transactions from the mempool.
+We keep validation light (signature + (from, nonce) duplicate check), but wire the flow end-to-end.
+
+**1. Block mining from mempool** — method in `blockchain.js`
+(you already added this; kept here for completeness):
+
+```js
+// blockchain.js — add method to mine using mempool                 // EN / DE / RU
+
+// ---------- Mine using mempool ----------                          // EN: Mine from mempool / DE: Aus Mempool minen / RU: Майним из мемпула
+mineFromMempool(mempool, maxTx = Infinity) {                         // EN: Pull txs / DE: Txs holen / RU: Забираем tx
+  if (!mempool || typeof mempool.takeAll !== 'function')             // EN: Guard / DE: Absicherung / RU: Защита
+    throw new Error('mineFromMempool: mempool with takeAll() is required');
+
+  const txs = mempool.takeAll(maxTx);                                // EN: Drain N / DE: Bis N entnehmen / RU: Забрать до N
+  return this.mineBlock(txs);                                        // EN: Build→mine→append / DE: Bauen→minen→anhängen / RU: Создать→майнить→добавить
+}
+```
+**2. Shared mempool** — we reuse the one created in `transaction.js.`
+It already exposes a Mempool instance validated by txValidator.
+
+**3. Smoke test** — `test-mine-mempool.js` (already in your repo)
+
+```js
+// test-mine-mempool.js                                              // EN: Demo / DE: Demo / RU: Демо
+const Blockchain = require('./blockchain');                          // EN: Chain / DE: Kette / RU: Цепь
+const Mempool    = require('./mempool');                             // EN: Mempool / DE: Mempool / RU: Мемпул
+
+const mempool = new Mempool(null, 1000);                             // EN: no validator (demo) / DE: kein Validator / RU: без валидатора
+mempool.add({ from:'0xaaa', to:'0xbbb', amount:5, nonce:1 });        // EN: tx1 / DE: Tx1 / RU: tx1
+mempool.add({ from:'0xccc', to:'0xddd', amount:7, nonce:1 });        // EN: tx2 / DE: Tx2 / RU: tx2
+
+console.log('Mempool size before mining:', mempool.size());          // EN/DE/RU
+const chain = new Blockchain({ difficulty: 2 });                     // EN: easier PoW / DE: leichter / RU: проще
+console.log('⛏ Mining from mempool...');                             // EN/DE/RU
+const block = chain.mineFromMempool(mempool);                        // EN: key call / DE: Kernaufruf / RU: ключ
+
+console.log('Mined hash:', block.hash);                              // EN/DE/RU
+console.log('Nonce:', block.nonce);                                  // EN/DE/RU
+console.log('Tx count in block:', block.transactions.length);        // EN/DE/RU
+console.log('Mempool size after mining:', mempool.size());           // EN/DE/RU
+console.log('Chain valid?', chain.isValid());                        // EN/DE/RU
+```
+
+```bash
+node test-mine-mempool.js
+```
+
+**Expected (example):**
+```yaml
+Mempool size before mining: 2
+⛏ Mining from mempool...
+Mined hash: 00ed3a...e54cc
+Nonce: 527
+Tx count in block: 2
+Mempool size after mining: 0
+Chain valid? true
+```
+
+
 ## 7) Commits & Project hygiene
 
 **Commit style:**
@@ -407,10 +471,23 @@ git add test-block.js test-chain.js && git commit -m "test: add PoW and chain sm
 
 ## 8) Next steps
 
-* Integrate real mempool selection into `mineBlock()` (valid txs, size/weight limit).
-* Add balances/state (account model or simple UTXO), prevent overspending.
-* P2P sync (peers, block propagation), basic explorer.
-* Solidity + Remix VM: first contracts, local deployment pipeline.
+1) Integrate real mempool selection into `mineBlock()` (valid txs, size/weight limit)  
+   - **Acceptance:** `mineBlock()` pulls pending txs from the mempool (e.g., `mempool.takeAll(limit)`), enforces a `BLOCK_TX_LIMIT` (or byte-size limit), and includes only validator-approved txs. A test proves: mempool size decreases, block contains ≤ limit, chain stays valid.
+
+2) Add balances/state (account model or simple UTXO), prevent overspending  
+   - **Option A (Accounts):** balances map `{address -> number}`; reject tx if `balance[from] < amount`; update balances when block is added.  
+   - **Option B (UTXO):** maintain unspent outputs; build inputs/outputs; reject double-spends.  
+   - **Acceptance:** overspend txs are rejected before mempool insert; state transitions are deterministic and chain-valid.
+
+3) P2P sync (peers, block propagation), basic explorer  
+   - Minimal peer protocol: broadcast new tx/block; receive and validate; resolve conflicts via Longest-Chain (or most-work) rule.  
+   - Basic explorer/CLI: list latest blocks/txs; show balances or UTXOs.  
+   - **Acceptance:** two local nodes converge to the same tip after independent mining; simple UI/CLI displays chain state.
+
+4) Solidity + Remix VM: first contracts, local deployment pipeline  
+   - Write a tiny Solidity contract; compile & deploy locally (Remix or Hardhat); add a script/README notes to reproduce.  
+   - **Acceptance:** contract compiles, deploys, and a simple call/tx succeeds locally; steps are documented.
+
 
 ---
 
@@ -420,16 +497,28 @@ git add test-block.js test-chain.js && git commit -m "test: add PoW and chain sm
 - **01.09.2025 (Day 5):** Added `block.js` (difficulty, PoW mining).  
 - **02.09.2025 (Day 6):** Added `blockchain.js` (genesis, mineBlock, isValid).  
 - **03.09.2025 (Day 7):** Created `DIARY.md` (portfolio edition).  
+- **08.09.2025 (Day 10):** Вынесены крипто-хелперы (tx-crypto.js), обновлён transaction.js.  
+- **10.09.2025 (Day 12):** Добавлен mempool.js, подключён валидатор подписей.  
+- **11.09.2025 (Day 13):** Blockchain.mineFromMempool(), тесты интеграции.  
+- **12.09.2025 (Day 14):** Полный прогон тестов, синхронизация README/ROADMAP/DIARY.  
 
 ---
 
 ## 10) PR-plan
-- [ ] Refactor `transaction.js` to import all helpers from `utils.js`.  
-- [ ] Connect mempool → `mineBlock()` (mine blocks with real pending txs).  
-- [ ] Add balances/state validation (prevent double spending).  
-- [ ] Extend tests (Jest/Mocha or Node assert).  
-- [ ] Enhance README with usage examples & screenshots.  
-- [ ] Export PDF version of `DIARY.md` for portfolio.  
+
+- [ ] **Refactor:** stabilize `transaction.js` as a demo-only script; keep all crypto helpers in `tx-crypto.js` and `utils.js`.
+- [ ] **Integrate:** add `mineFromMempool()` to `Blockchain` (already implemented) → cover with `test-mine-mempool.js`.
+- [ ] **Feature:** implement miner reward (coinbase transaction) in each mined block.
+- [ ] **Feature:** introduce account balances and reject overspending before inserting a transaction into the mempool.
+- [ ] **Tests:** extend coverage (Node assert / Jest) to verify:
+  - duplicate (from, nonce) detection in mempool,
+  - correct miner reward,
+  - rejection of overspending transactions.
+- [ ] **P2P:** simulate multiple nodes, implement block/tx propagation and Longest Chain Rule.
+- [ ] **DX:** improve README/ROADMAP/DIARY with more examples, screenshots, and consistent structure.
+- [ ] **Explorer:** add CLI or minimal HTTP API for chain inspection.
+- [ ] **Solidity:** start with a simple smart contract in Remix VM and document the process in `DIARY.md`.
+
 
 
 > Keep commits small and meaningful. This diary grows as features land — append new steps with dates.
