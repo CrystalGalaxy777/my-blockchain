@@ -521,5 +521,3 @@ node test/basic.test.js
 * [ ] **Explorer:** add CLI or minimal HTTP API for chain inspection.
 * [ ] **Solidity:** start with a simple smart contract in Remix VM and document the process in `DIARY.md`.
 
-> Keep commits small and meaningful. This diary grows as features land — append new steps with dates.
-
