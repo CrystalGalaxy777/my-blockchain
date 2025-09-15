@@ -11,8 +11,8 @@ const reward = 50;                                                              
 const mempool = new Mempool(null, 1000);                                                       // EN: Create mempool without validator / DE: Mempool ohne Validator / RU: Мемпул без валидатора
 mempool.add({ from: '0xaaa', to: '0xbbb', amount: 5, nonce: 1 });                              // EN: Add user tx #1 / DE: Nutzer-Tx #1 hinzufügen / RU: Добавляем пользовательскую tx №1
 
-const chain = new Blockchain({ difficulty: 2 });                                               // EN: Easier PoW for speed / DE: Leichtere PoW für Geschwindigkeit / RU: Упрощённый PoW для скорости
-const block = chain.mineFromMempool(mempool, Infinity, { minerAddress: miner, reward });       // EN: Mine from mempool with coinbase / DE: Aus Mempool mit Coinbase minen / RU: Майним из мемпула с coinbase
+const chain = new Blockchain({ difficulty: 2, blockReward: 50, halvingInterval: 100000 });     // EN/DE/RU: можно задать халвинг (необязательно)
+const block = chain.mineFromMempool(mempool, Infinity, { minerAddress: miner });               // EN/DE/RU: награда берётся из протокола
 
 console.log('Mined hash:', block.hash);                                                        // EN: Print block hash / DE: Block-Hash ausgeben / RU: Печать хэша блока
 console.log('Nonce:', block.nonce);                                                            // EN: Print nonce / DE: Nonce ausgeben / RU: Печать nonce

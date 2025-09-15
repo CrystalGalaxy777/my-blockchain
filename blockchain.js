@@ -4,8 +4,10 @@
 const Block = require('./block');         // EN: Use Block class / DE: Block-Klasse nutzen / RU: Используем класс Block
 
 class Blockchain {                        // EN: Chain container / DE: Ketten-Container / RU: Контейнер цепочки
-  constructor({ difficulty = 3 } = {}) {  // EN: Global difficulty / DE: Globale Difficulty / RU: Глобальная сложность
-    this.difficulty = difficulty;         // EN: Store difficulty / DE: Difficulty speichern / RU: Сохраняем сложность
+  constructor({ difficulty = 3, blockReward = 50, halvingInterval = null } = {}) { // EN: Params: PoW diff + reward + optional halving / DE: Parameter: PoW-Diff + Reward + optionales Halving / RU: Параметры: сложность + награда + опциональное халвинг
+    this.difficulty = difficulty;                    // EN: Store difficulty / DE: Difficulty speichern / RU: Сохраняем сложность
+    this.blockReward = blockReward;                  // EN: Protocol reward per block / DE: Protokoll-Reward pro Block / RU: Протокольная награда за блок
+    this.halvingInterval = halvingInterval;          // EN: Halving interval in blocks or null / DE: Halving-Intervall in Blöcken oder null / RU: Интервал халвинга в блоках или null
     this.chain = [this.createGenesisBlock()]; // EN: Start with genesis / DE: Start mit Genesis / RU: Начинаем с генезиса
   }
 
@@ -35,6 +37,13 @@ class Blockchain {                        // EN: Chain container / DE: Ketten-Co
     return block;                                                            // EN: Return appended / DE: Zurückgeben / RU: Вернуть добавленный
   }
 
+getCurrentReward(height) {                                // EN: Protocol reward at a given height / DE: Protokoll-Reward je Höhe / RU: Награда на данной высоте
+  if (!this.halvingInterval || height === 0) return this.blockReward; // EN: No halving or genesis / DE: Kein Halving oder Genesis / RU: Без халвинга или генезис
+  const eras = Math.floor(height / this.halvingInterval); // EN: How many eras passed / DE: Wieviele Epochen / RU: Сколько эпох прошло
+  return this.blockReward / Math.pow(2, eras);            // EN: Half each era / DE: Je Epoche halbiert / RU: Делим на 2 в каждой эпохе
+}
+
+
   // ---------- Coinbase helper ----------                                    // EN: DE: RU: Эта транзакция всегда первая в массиве transactions.                              
 createCoinbaseTx(minerAddress, reward, height) {                              // EN: Build miner reward tx / DE: Miner-Reward-Tx bauen / RU: Создать tx награды майнеру
   return {                                                                    // EN: Minimal fields for our serializer / DE: Minimale Felder für unseren Serializer / RU: Минимальные поля для сериализации
@@ -45,29 +54,35 @@ createCoinbaseTx(minerAddress, reward, height) {                              //
 }
 
 
-mineBlock(transactions = [], opts = {}) {                                        // EN: Extended signature with opts / DE: Erweiterte Signatur mit opts / RU: Расширенная сигнатура с opts
-  const { minerAddress, reward = 50 } = opts;                                    // EN: Require miner address + default reward / DE: Miner-Adresse nötig + Standard-Reward / RU: Нужен адрес майнера + награда по умолчанию
-  if (!minerAddress) throw new Error('minerAddress is required for coinbase');   // EN: Guard: address must be provided / DE: Absicherung: Adresse erforderlich / RU: Проверка: адрес обязателен
-  const height = this.latest().index + 1;                                        // EN: Next block height / DE: Nächste Blockhöhe / RU: Следующая высота
-  const coinbase = this.createCoinbaseTx(minerAddress, reward, height);          // EN: Create coinbase tx / DE: Coinbase-Tx erstellen / RU: Создать coinbase-транзакцию
-  const txs = [coinbase, ...transactions];                                       // EN: Prepend coinbase / DE: Coinbase voranstellen / RU: Вставить coinbase первой
-  const block = new Block({ index: height, previousHash: this.latest().hash, timestamp: Date.now(), transactions: txs, difficulty: this.difficulty, nonce: 0 }); // EN: Build candidate / DE: Kandidaten bauen / RU: Собрать кандидат
-  block.mine();                                                                   // EN: Run PoW / DE: PoW ausführen / RU: Запуск PoW
-  return this.addBlock(block);                                                    // EN: Validate & append / DE: Validieren & anhängen / RU: Проверить и добавить
-}
+mineBlock(transactions = [], opts = {}) {            // EN: Build→coinbase→mine→add / DE: Bauen→Coinbase→minen→anhängen / RU: Собрать→coinbase→майнить→добавить
+    const { minerAddress } = opts;                   // EN: Miner address is required / DE: Miner-Adresse erforderlich / RU: Нужен адрес майнера
+    if (!minerAddress) throw new Error('minerAddress is required for coinbase'); // EN: Guard / DE: Absicherung / RU: Проверка
+    const height = this.latest().index + 1;          // EN: Next height / DE: Nächste Höhe / RU: Следующая высота
+    const reward = this.getCurrentReward(height);    // EN: Reward from protocol / DE: Reward aus Protokoll / RU: Награда из протокола
+    const coinbase = this.createCoinbaseTx(minerAddress, reward, height); // EN: Create coinbase / DE: Coinbase erzeugen / RU: Создать coinbase
+    const txs = [coinbase, ...transactions];         // EN: Coinbase must be first / DE: Coinbase zuerst / RU: Coinbase первой
+    const block = new Block({                        // EN: Construct candidate / DE: Kandidat bauen / RU: Создать кандидат-блок
+      index: height,                                 // EN: Height / DE: Höhe / RU: Высота
+      previousHash: this.latest().hash,              // EN: Link to tip / DE: Verknüpfung zur Spitze / RU: Связь с вершиной
+      timestamp: Date.now(),                         // EN: Now / DE: Jetzt / RU: Сейчас
+      transactions: txs,                             // EN: Payload with coinbase / DE: Nutzlast mit Coinbase / RU: Нагрузка с coinbase
+      difficulty: this.difficulty,                   // EN: Target / DE: Ziel / RU: Цель
+      nonce: 0                                       // EN: Start nonce / DE: Start-Nonce / RU: Начальный nonce
+    });                                              // EN: End object / DE: Ende Objekt / RU: Конец объекта
+    block.mine();                                    // EN: Run PoW / DE: PoW ausführen / RU: Запуск PoW
+    return this.addBlock(block);                     // EN: Validate & append / DE: Validieren & anhängen / RU: Проверить и добавить
+  }
 
 
   // ---------- Mine using mempool ----------
   // EN: Pull txs from an external mempool and mine a block
   // DE: Txs aus externem Mempool holen und Block minen
   // RU: Забираем транзакции из внешнего мемпула и майним блок
-mineFromMempool(mempool, maxTx = Infinity, opts = {}) {                           // EN: Accept miner opts / DE: Miner-Optionen erlauben / RU: Принимаем опции майнера
-  if (!mempool || typeof mempool.takeAll !== 'function') {                        // EN/DE/RU: guard
-    throw new Error('mineFromMempool: mempool with takeAll() is required');
+mineFromMempool(mempool, maxTx = Infinity, opts = {}) { // EN: Drain mempool then mine / DE: Mempool leeren, dann minen / RU: Забрать мемпул и майнить
+    if (!mempool || typeof mempool.takeAll !== 'function') throw new Error('mineFromMempool: mempool with takeAll() is required'); // EN/DE/RU: guard
+    const txs = mempool.takeAll(maxTx);              // EN: Drain up to N / DE: Bis N entnehmen / RU: Забрать до N
+    return this.mineBlock(txs, opts);                // EN: Mine with protocol reward / DE: Mit Protokoll-Reward minen / RU: Майнить с протокольной наградой
   }
-  const txs = mempool.takeAll(maxTx);                                             // EN: Drain up to N / DE: Bis N entnehmen / RU: Забрать до N
-  return this.mineBlock(txs, opts);                                               // EN: Reuse mining with coinbase / DE: Mining mit Coinbase wiederverwenden / RU: Используем майнинг с coinbase
-}
 
 
   isValid() {                             // EN: Full chain check / DE: Komplette Kettenprüfung / RU: Полная проверка цепи
