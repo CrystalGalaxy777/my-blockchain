@@ -11,7 +11,8 @@
     "start": "node transaction.js",  
     "block": "node block.js",        
     "chain": "node blockchain.js",   
-    "test": "node test/basic.test.js"
+    "test": "node test/basic.test.js",
+    "test:coinbase": "node test-coinbase.js"
   },
 
   "//repository": "GitHub project URL",
@@ -47,4 +48,5 @@
   "devDependencies": {
     "@types/node": "^24.3.0"
   }
+
 }

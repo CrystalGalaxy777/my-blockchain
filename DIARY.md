@@ -37,7 +37,7 @@ echo "# My Blockchain Learning (JS)" > README.md           # EN: Seed README / D
 node -v && npm -v                                          # EN: Verify toolchain / DE: Toolchain prüfen / RU: Проверить версии
 npm init -y                                                # EN: Create package.json / DE: package.json erzeugen / RU: Создать package.json
 git add . && git commit -m "chore: init repository"        # EN: First commit / DE: Erster Commit / RU: Первый коммит
-````
+```
 
 Optional: add a remote and push.
 

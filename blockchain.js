@@ -35,30 +35,40 @@ class Blockchain {                        // EN: Chain container / DE: Ketten-Co
     return block;                                                            // EN: Return appended / DE: Zurückgeben / RU: Вернуть добавленный
   }
 
-  mineBlock(transactions = []) {           // EN: Build→mine→add / DE: Bauen→minen→hinzufügen / RU: Создать→майнить→добавить
-    const block = new Block({
-      index: this.latest().index + 1,      // EN: Next height / DE: Nächste Höhe / RU: Следующая высота
-      previousHash: this.latest().hash,    // EN: Link to tip / DE: Verknüpfung zur Spitze / RU: Связь с вершиной
-      timestamp: Date.now(),               // EN: Now / DE: Jetzt / RU: Сейчас
-      transactions,                        // EN: Payload / DE: Nutzlast / RU: Полезная нагрузка
-      difficulty: this.difficulty,         // EN: Target / DE: Ziel / RU: Цель
-      nonce: 0                             // EN: Start nonce / DE: Start-Nonce / RU: Начальный nonce
-    });
-    block.mine();                          // EN: PoW loop / DE: PoW-Schleife / RU: Цикл PoW
-    return this.addBlock(block);           // EN: Validate & append / DE: Validieren & anhängen / RU: Проверить и добавить
-  }
+  // ---------- Coinbase helper ----------                                    // EN: DE: RU: Эта транзакция всегда первая в массиве transactions.                              
+createCoinbaseTx(minerAddress, reward, height) {                              // EN: Build miner reward tx / DE: Miner-Reward-Tx bauen / RU: Создать tx награды майнеру
+  return {                                                                    // EN: Minimal fields for our serializer / DE: Minimale Felder für unseren Serializer / RU: Минимальные поля для сериализации
+    from: null,                                                               // EN: DE: RU: coinbase не подписывается и не тратит существующий баланс.                                                              
+    to: minerAddress, 
+    amount: reward, 
+    nonce: height };            
+}
+
+
+mineBlock(transactions = [], opts = {}) {                                        // EN: Extended signature with opts / DE: Erweiterte Signatur mit opts / RU: Расширенная сигнатура с opts
+  const { minerAddress, reward = 50 } = opts;                                    // EN: Require miner address + default reward / DE: Miner-Adresse nötig + Standard-Reward / RU: Нужен адрес майнера + награда по умолчанию
+  if (!minerAddress) throw new Error('minerAddress is required for coinbase');   // EN: Guard: address must be provided / DE: Absicherung: Adresse erforderlich / RU: Проверка: адрес обязателен
+  const height = this.latest().index + 1;                                        // EN: Next block height / DE: Nächste Blockhöhe / RU: Следующая высота
+  const coinbase = this.createCoinbaseTx(minerAddress, reward, height);          // EN: Create coinbase tx / DE: Coinbase-Tx erstellen / RU: Создать coinbase-транзакцию
+  const txs = [coinbase, ...transactions];                                       // EN: Prepend coinbase / DE: Coinbase voranstellen / RU: Вставить coinbase первой
+  const block = new Block({ index: height, previousHash: this.latest().hash, timestamp: Date.now(), transactions: txs, difficulty: this.difficulty, nonce: 0 }); // EN: Build candidate / DE: Kandidaten bauen / RU: Собрать кандидат
+  block.mine();                                                                   // EN: Run PoW / DE: PoW ausführen / RU: Запуск PoW
+  return this.addBlock(block);                                                    // EN: Validate & append / DE: Validieren & anhängen / RU: Проверить и добавить
+}
+
 
   // ---------- Mine using mempool ----------
   // EN: Pull txs from an external mempool and mine a block
   // DE: Txs aus externem Mempool holen und Block minen
   // RU: Забираем транзакции из внешнего мемпула и майним блок
-  mineFromMempool(mempool, maxTx = Infinity) {
-    if (!mempool || typeof mempool.takeAll !== 'function') { // EN/DE/RU: guard
-      throw new Error('mineFromMempool: mempool with takeAll() is required');
-    }
-    const txs = mempool.takeAll(maxTx);  // EN: Drain up to N / DE: Bis N entnehmen / RU: Забрать до N
-    return this.mineBlock(txs);          // EN: Reuse flow / DE: Flow wiederverwenden / RU: Повторно используем логику
+mineFromMempool(mempool, maxTx = Infinity, opts = {}) {                           // EN: Accept miner opts / DE: Miner-Optionen erlauben / RU: Принимаем опции майнера
+  if (!mempool || typeof mempool.takeAll !== 'function') {                        // EN/DE/RU: guard
+    throw new Error('mineFromMempool: mempool with takeAll() is required');
   }
+  const txs = mempool.takeAll(maxTx);                                             // EN: Drain up to N / DE: Bis N entnehmen / RU: Забрать до N
+  return this.mineBlock(txs, opts);                                               // EN: Reuse mining with coinbase / DE: Mining mit Coinbase wiederverwenden / RU: Используем майнинг с coinbase
+}
+
 
   isValid() {                             // EN: Full chain check / DE: Komplette Kettenprüfung / RU: Полная проверка цепи
     for (let i = 1; i < this.chain.length; i++) {
