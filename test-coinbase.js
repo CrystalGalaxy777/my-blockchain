@@ -1,37 +1,25 @@
-// test-coinbase.js — Smoke test for miner reward (coinbase) // EN: Smoke test for coinbase / DE: Smoke-Test für Coinbase / RU: Смоук-тест для coinbase
+// test-coinbase.js — Smoke test for miner reward (coinbase) // EN: Coinbase smoke / DE: Coinbase Smoke / RU: Смоук-тест coinbase
+const assert = require('assert');                                                     // EN: Assert / DE: Assert / RU: Assert
+const Blockchain = require('./blockchain');                                          // EN: Chain / DE: Kette / RU: Цепь
+const Mempool = require('./mempool');                                                // EN: Mempool / DE: Mempool / RU: Мемпул
 
-'use strict';                                                                                 // EN: Strict mode / DE: Strikter Modus / RU: Строгий режим
-const assert = require('assert');                                                              // EN: Node assert / DE: Node-Assert / RU: Встроенный assert
-const Blockchain = require('./blockchain');                                                    // EN: Import Blockchain / DE: Blockchain importieren / RU: Импорт Blockchain
-const Mempool = require('./mempool');                                                          // EN: Import Mempool / DE: Mempool importieren / RU: Импорт Mempool
+const miner = '0xminer1';                                                             // EN: Demo miner / DE: Demo-Miner / RU: Майнер для демо
+const reward = 50;                                                                    // EN: Demo reward / DE: Demo-Reward / RU: Награда в демо
+const chain = new Blockchain({ difficulty: 2, blockReward: reward });                 // EN: Easy PoW + reward / DE: Leichter PoW + Reward / RU: Упрощённый PoW + награда
 
-const miner = '0xminer1';                                                                      // EN: Demo miner address / DE: Demo-Miner-Adresse / RU: Адрес майнера для демо
-const reward = 50;                                                                             // EN: Demo reward amount / DE: Demo-Reward-Betrag / RU: Размер награды в демо
+// Coinbase-only block (никаких пользовательских tx)                                   // EN/DE/RU
+const mempool = new Mempool((tx) => chain.validateTxAgainstState(tx), 1000);          // EN: Validator (won't be used) / DE: Validator / RU: Валидатор
+const block = chain.mineFromMempool(mempool, Infinity, { minerAddress: miner });      // EN: Mine with coinbase / DE: Mit Coinbase minen / RU: Майнить с coinbase
 
-const mempool = new Mempool(null, 1000);                                                       // EN: Create mempool without validator / DE: Mempool ohne Validator / RU: Мемпул без валидатора
-mempool.add({ from: '0xaaa', to: '0xbbb', amount: 5, nonce: 1 });                              // EN: Add user tx #1 / DE: Nutzer-Tx #1 hinzufügen / RU: Добавляем пользовательскую tx №1
+console.log('Mined hash:', block.hash);                                               // EN/DE/RU
+console.log('Nonce:', block.nonce);                                                   // EN/DE/RU
+console.log('Tx count:', block.transactions.length);                                  // EN/DE/RU
 
-const chain = new Blockchain({ difficulty: 2, blockReward: 50, halvingInterval: 100000 });     // EN/DE/RU: можно задать халвинг (необязательно)
-const block = chain.mineFromMempool(mempool, Infinity, { minerAddress: miner });               // EN/DE/RU: награда берётся из протокола
+const cb = block.transactions[0];                                                     // EN: First tx is coinbase / DE: Erste Tx ist Coinbase / RU: Первая tx — coinbase
+assert.strictEqual(cb.from, null, 'coinbase.from must be null');                      // EN/DE/RU
+assert.strictEqual(cb.to, miner, 'coinbase.to must equal miner address');             // EN/DE/RU
+assert.strictEqual(cb.amount, reward, 'coinbase.amount must equal reward');           // EN/DE/RU
+assert.strictEqual(cb.nonce, block.index, 'coinbase.nonce must equal block height');  // EN/DE/RU
 
-console.log('Mined hash:', block.hash);                                                        // EN: Print block hash / DE: Block-Hash ausgeben / RU: Печать хэша блока
-console.log('Nonce:', block.nonce);                                                            // EN: Print nonce / DE: Nonce ausgeben / RU: Печать nonce
-console.log('Tx count:', block.transactions.length);                                           // EN: Print tx count / DE: Anzahl Txs ausgeben / RU: Печать числа транзакций
-
-const cb = block.transactions[0];                                                              // EN: First tx is coinbase / DE: Erste Tx ist Coinbase / RU: Первая tx — coinbase
-assert.strictEqual(cb.from, null, 'coinbase.from must be null');                               // EN: from must be null / DE: from muss null sein / RU: from должен быть null
-assert.strictEqual(cb.to, miner, 'coinbase.to must equal miner address');                      // EN: to must be miner / DE: to muss Miner sein / RU: to должен быть адрес майнера
-assert.strictEqual(cb.amount, reward, 'coinbase.amount must equal reward');                    // EN: amount must equal reward / DE: amount muss Reward sein / RU: amount равен награде
-assert.strictEqual(cb.nonce, block.index, 'coinbase.nonce must equal block height');           // EN: nonce equals height / DE: Nonce entspricht Höhe / RU: nonce равен высоте блока
-
-const userTx = block.transactions[1];                                                          // EN: Second tx is the user tx / DE: Zweite Tx ist Nutzer-Tx / RU: Вторая tx — пользовательская
-assert.ok(userTx, 'user tx should be present');                                                // EN: Must exist / DE: Muss existieren / RU: Должна существовать
-assert.strictEqual(userTx.from, '0xaaa', 'user tx.from mismatch');                             // EN: Check from / DE: from prüfen / RU: Проверка from
-assert.strictEqual(userTx.to, '0xbbb', 'user tx.to mismatch');                                 // EN: Check to / DE: to prüfen / RU: Проверка to
-assert.strictEqual(userTx.amount, 5, 'user tx.amount mismatch');                               // EN: Check amount / DE: Betrag prüfen / RU: Проверка суммы
-assert.strictEqual(userTx.nonce, 1, 'user tx.nonce mismatch');                                 // EN: Check nonce / DE: Nonce prüfen / RU: Проверка nonce
-
-assert.ok(chain.isValid(), 'chain must be valid after mining');                                // EN: Chain must remain valid / DE: Kette muss gültig sein / RU: Цепь должна быть валидной
-assert.strictEqual(mempool.size(), 0, 'mempool should be empty after mining');                 // EN: Mempool drained / DE: Mempool geleert / RU: Мемпул опустошён
-
-console.log('✅ coinbase smoke test passed');                                                  // EN: Success message / DE: Erfolgsnachricht / RU: Успешное завершение
+assert.ok(chain.isValid(), 'chain must be valid after mining');                       // EN/DE/RU
+console.log('✅ coinbase smoke test passed');                                          // EN/DE/RU

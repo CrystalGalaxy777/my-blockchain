@@ -12,7 +12,9 @@
     "block": "node block.js",        
     "chain": "node blockchain.js",   
     "test": "node test/basic.test.js",
-    "test:coinbase": "node test-coinbase.js"
+    "test:coinbase": "node test-coinbase.js",
+    "test:overspend": "node test-overspend.js",   
+    "test:state": "node test-state-apply.js"      
   },
 
   "//repository": "GitHub project URL",
