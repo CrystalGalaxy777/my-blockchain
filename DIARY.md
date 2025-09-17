@@ -417,16 +417,18 @@ Create `test/basic.test.js`:
 ```js
 const assert = require('assert');                                                             // EN: Node assert / DE: Node-Assert / RU: Встроенный assert
 const crypto = require('crypto');                                                             // EN: Node crypto / DE: Node-Krypto / RU: Крипто
-const { serializeTx, sha256 } = require('../tx-crypto.js');                                   // EN: Import helpers / DE: Helfer importieren / RU: Импорт хелперов
+const { serializeTx } = require('../tx-crypto.js');                                           // EN: Tx serializer / DE: Tx-Serializer / RU: Сериализатор tx
+const { sha256Hex } = require('../utils.js');                                                 // EN: Our hash helper / DE: Unser Hash-Helfer / RU: Наш хелпер хэша
+
 
 const tx = { from: 'a', to: 'b', amount: 10, nonce: 1 };                                      // EN: Minimal tx / DE: Minimale Tx / RU: Минимальная tx
 const ser = serializeTx(tx);                                                                   // EN: Canonical JSON / DE: Kanonisches JSON / RU: Каноничный JSON
 assert.strictEqual(ser, JSON.stringify({ from:'a', to:'b', amount:10, nonce:1 }), 'serializeTx() must be deterministic'); // EN: Determinism / DE: Determinismus / RU: Детерминизм
 
 const nodeHash = crypto.createHash('sha256').update('test').digest('hex');                    // EN: Reference hash / DE: Referenz-Hash / RU: Эталонный хэш
-const helperHash = sha256('test');                                                            // EN: Helper hash / DE: Helfer-Hash / RU: Хэш хелпера
-assert.strictEqual(helperHash, nodeHash, 'sha256() must match Node crypto output');           // EN: Must match / DE: Muss übereinstimmen / RU: Должен совпасть
-assert.strictEqual(helperHash.length, 64, 'sha256() must return 64 hex chars');               // EN: 64 hex chars / DE: 64 Hex-Zeichen / RU: 64 hex-символа
+const helperHash = sha256Hex('test');                                                            // EN: Helper hash / DE: Helfer-Hash / RU: Хэш хелпера
+assert.strictEqual(helperHash, nodeHash, 'sha256Hex() must match Node crypto output');           // EN: Must match / DE: Muss übereinstimmen / RU: Должен совпасть
+assert.strictEqual(helperHash.length, 64, 'sha256Hex() must return 64 hex chars');               // EN: 64 hex chars / DE: 64 Hex-Zeichen / RU: 64 hex-символа
 
 const txWithExtra = { ...tx, foo: 123, bar: 'x' };                                            // EN: Extra fields / DE: Extra-Felder / RU: Лишние поля
 assert.strictEqual(serializeTx(txWithExtra), ser, 'serializeTx() must ignore unspecified fields'); // EN: Ignore extras / DE: Extras ignorieren / RU: Игнор лишних
@@ -502,6 +504,11 @@ node test/basic.test.js
 * **10.09.2025 (Day 12):** Introduced `tx-crypto.js` and `mempool.js`; updated `transaction.js`.
 * **11.09.2025 (Day 13):** Implemented `mineFromMempool()` and integration demos.
 * **12.09.2025 (Day 14):** Basic unit tests and CLI PoW demo.
+* **13.09.2025 (Day 15):** Added smoke test `test-coinbase.js` for miner reward (coinbase transaction).
+* **14.09.2025 (Day 16):** Refactored `Blockchain` to support configurable `blockReward` and optional `halvingInterval`.
+* **15.09.2025 (Day 17):** Unified hashing helpers (`sha256Hex`) across utils/tx/tests; cleaned up inconsistencies.
+* **16.09.2025 (Day 18):** Fixed and verified all tests (`basic.test.js`, `test-chain.js`, `test-mine-mempool.js`, `test-coinbase.js`) → green.
+* **17.09.2025 (Day 19):** Documentation pass: updated DIARY.md with tri-lingual inline comments and extended explanations.
 
 ---
 
