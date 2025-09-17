@@ -1,49 +1,38 @@
-// EN: Minimal sanity tests (CommonJS) for portfolio repo
-// DE: Minimale Sanity-Tests (CommonJS) für das Portfolio-Repo
-// RU: Минимальные sanity-тесты (CommonJS) для портфолио-репо
+// test/basic.test.js — sanity checks (utils vs tx-crypto) // EN: Sanity checks / DE: Grundchecks / RU: Базовые проверки
 
-const assert = require("assert");   // EN: Node core assertions / DE: Node-Assertions / RU: Ассерты Node.js
-const crypto = require("crypto");   // EN: Built-in crypto / DE: Eingebaute Krypto / RU: Встроенный crypto
+const assert = require('assert');                                      // EN: Node assert / DE: Node-Assert / RU: Встроенный assert
+const crypto = require('crypto');                                      // EN: Node crypto / DE: Node-Krypto / RU: Модуль crypto
+const { serializeTx, sha256Hex } = require('../utils');                // EN: Utils: serializer + hex-hash / DE: Utils / RU: Утилиты
+const { sha256 } = require('../tx-crypto');                            // EN: Tx-layer hash alias / DE: Tx-Hash-Alias / RU: Хэш на слое транзакций
 
-// EN: Import helpers from our implementation
-// DE: Importe Hilfsfunktionen aus unserer Implementierung
-// RU: Импортируем хелперы из нашей реализации
-// const { serializeTx, sha256 } = require("../transaction.js");
-const { serializeTx, sha256 } = require("../tx-crypto.js");
-
-
-// ---------- Fixture / Testdaten / Тестовые данные ----------
-const tx = { from: "a", to: "b", amount: 10, nonce: 1 }; // EN: Minimal tx / DE: Minimale Tx / RU: Минимальная транзакция
-
-// ---------- Test 1: deterministic serialization ----------
-// EN: Field order must be fixed → reproducible signatures
-// DE: Feste Feldreihenfolge → reproduzierbare Signaturen
-// RU: Фиксированный порядок полей → воспроизводимые подписи
-const ser = serializeTx(tx);
-assert.strictEqual(
+// --- serializeTx: determinism ----------------------------------------------
+const tx = { from: 'a', to: 'b', amount: 10, nonce: 1 };               // EN: Base tx / DE: Basistransaktion / RU: Базовая транзакция
+const ser = serializeTx(tx);                                           // EN: Canonical JSON / DE: Kanonisches JSON / RU: Каноничный JSON
+assert.strictEqual(                                                    // EN: Must match literal / DE: Muss wortgleich sein / RU: Должен совпасть
   ser,
-  JSON.stringify({ from: "a", to: "b", amount: 10, nonce: 1 }),
-  "serializeTx() must produce deterministic JSON"
+  JSON.stringify({ from: 'a', to: 'b', amount: 10, nonce: 1 }),        // EN: Expected stable order / DE: Feste Reihenfolge / RU: Фиксированный порядок
+  'serializeTx() must be deterministic'                                // EN/DE/RU: Сообщение об ошибке
 );
 
-// ---------- Test 2: sha256 helper correctness ----------
-// EN: Our sha256() must equal Node's crypto SHA-256
-// DE: Unser sha256() muss dem Node-crypto SHA-256 entsprechen
-// RU: Наш sha256() должен совпадать с SHA-256 из crypto
-const nodeHash = crypto.createHash("sha256").update("test").digest("hex"); // EN/DE/RU: Эталонный хэш через crypto
-const helperHash = sha256("test");                                         // EN/DE/RU: Хэш через нашу функцию
-assert.strictEqual(helperHash, nodeHash, "sha256() must match Node crypto output");
-assert.strictEqual(helperHash.length, 64, "sha256() must return 64 hex chars");
+const txWithExtra = { ...tx, foo: 123, bar: 'x' };                     // EN: Extra fields / DE: Extra-Felder / RU: Лишние поля
+assert.strictEqual(serializeTx(txWithExtra), ser,                      // EN: Extras ignored / DE: Extras ignorieren / RU: Игнор лишних полей
+  'serializeTx() must ignore extra fields');                           // EN/DE/RU: Сообщение об ошибке
 
-// ---------- Test 3: ignore extra fields in serializeTx ----------
-// EN: Extra props must not affect canonical form
-// DE: Zusätzliche Felder dürfen die kanonische Form nicht beeinflussen
-// RU: Лишние поля не должны влиять на каноничную форму
-const txWithExtra = { ...tx, foo: 123, bar: "x" };
-assert.strictEqual(
-  serializeTx(txWithExtra),
-  ser,
-  "serializeTx() must ignore non-specified fields"
+// --- sha256Hex (utils) vs Node crypto --------------------------------------
+const nodeHash = crypto.createHash('sha256').update('test').digest('hex'); // EN: Reference hash / DE: Referenzhash / RU: Эталонный хэш
+const utilHash = sha256Hex('test');                                   // EN: Our utils hash / DE: Utils-Hash / RU: Хэш через utils
+assert.strictEqual(utilHash, nodeHash,                                 // EN: Must be identical / DE: Muss identisch sein / RU: Должен совпасть
+  'sha256Hex() must match Node crypto output');                        // EN/DE/RU: Сообщение об ошибке
+assert.strictEqual(utilHash.length, 64,                                // EN: 32 bytes → 64 hex chars / DE: 32 Byte → 64 Hex-Zeichen / RU: 32 байта → 64 hex-символа
+  'sha256Hex() must return 64 hex chars');                             // EN/DE/RU: Сообщение об ошибке
+
+// --- sha256 (tx-crypto) must equal sha256Hex (utils) -----------------------
+const txHashViaUtils = sha256Hex(ser);                                 // EN: Hash via utils / DE: Hash über Utils / RU: Хэш через utils
+const txHashViaTxCrypto = sha256(ser);                                 // EN: Hash via tx-crypto / DE: Hash über tx-crypto / RU: Хэш через tx-crypto
+assert.strictEqual(                                                    // EN: Should match exactly / DE: Muss exakt gleich sein / RU: Должны совпасть
+  txHashViaTxCrypto, txHashViaUtils,
+  'tx-crypto.sha256() must equal utils.sha256Hex()'                    // EN/DE/RU: Сообщение об ошибке
 );
 
-console.log("✅ All basic tests passed");
+// --- done -------------------------------------------------------------------
+console.log('✅ All basic tests passed');                               // EN: Success / DE: Erfolg / RU: Успех
