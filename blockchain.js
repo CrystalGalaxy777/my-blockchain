@@ -2,6 +2,8 @@
 
 const Block = require('./block');                                   // EN: Use Block class / DE: Block-Klasse nutzen / RU: Используем класс Block
 
+
+
 class Blockchain {                                                  // EN: Chain container / DE: Ketten-Container / RU: Контейнер цепочки
   constructor({ difficulty = 3, blockReward = 50, halvingInterval = null } = {}) { // EN: Protocol params / DE: Protokoll-Parameter / RU: Параметры протокола
     this.difficulty = difficulty;                                   // EN: PoW difficulty / DE: PoW-Schwierigkeit / RU: Сложность PoW
